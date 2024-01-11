@@ -45,6 +45,9 @@ def restaurant_login():
 
     login_button = tk.Button(login_restaurant, text="Login",
                              command=lambda: restaurant_page(login_restaurant, email_entry.get(), password_entry.get()))
+    # Register
+    register_label = tk.Label(login_restaurant, text="If you don't have an account, please register")
+    register_button = tk.Button(login_restaurant, text="Register", command=lambda: register_restaurant)
 
     register_label = tk.Label(login_restaurant, text="If you don't have an account, please register")
     register_button = tk.Button(login_restaurant, text="Register", command=lambda: register_restaurant)
@@ -61,8 +64,16 @@ def restaurant_login():
     register_button.pack(pady=10)
 
 
-def register_restaurant(email, password):
-    
+def register_restaurant():
+    register_screen = tk.Toplevel(root)
+    register_screen.title("Register")
+    register_screen.geometry("300x400")
+
+    register_email_label = tk.Label(register_screen, text="Email:")
+    register_password_label = tk.Label(register_screen, text="Password:")
+
+    register_email_entry = tk.Entry(register_screen)
+    register_password_entry = tk.Entry(register_screen, show='*')
 
 
 # AFTER LOGIN, RUN THE RESTAURANT MAIN PAGE
