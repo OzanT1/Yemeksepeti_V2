@@ -61,9 +61,8 @@ def restaurant_login():
     register_button.pack(pady=10)
 
 
-# REGISTER PAGE
+# REGISTER RESTAURANT PAGE
 def submit_register_restaurant(name, email, password, address, phone_number):
-
     try:
         # Check if the restaurant is already registered
         mycursor.execute("SELECT * FROM Restaurants WHERE email = %s AND password = %s", (email, password))
@@ -169,8 +168,6 @@ def restaurant_page(login_restaurant, email, password):
 
         restaurant_window = tk.Frame(root, padx=1, pady=1)
         restaurant_window.pack(padx=10, pady=10)
-        # restaurant_window.title("RESTAURANT MAIN PAGE")
-        # restaurant_window.geometry("1360x720")
 
         # Add widgets to the main page
         label = tk.Label(restaurant_window, text="Welcome to the Restaurant Main Page!")
@@ -194,6 +191,111 @@ def authenticate_customer(email, password):
     return customer is not None
 
 
+def submit_register_customer(first_name, last_name, email, password, address, phone_number):
+    try:
+        # Check if the customer is already registered
+        mycursor.execute("SELECT * FROM Customers WHERE email = %s AND password = %s", (email, password))
+        existing_customer = mycursor.fetchone()
+
+        if existing_customer:
+            messagebox.showerror("Authentication Failed", "User already registered")
+        else:
+            # Insert the new customer into the database
+            sql_command = "INSERT INTO Customers (firstName, lastName, email, password, address, phoneNumber) VALUES (%s, %s, %s, %s, %s, %s)"
+
+            mycursor.execute(sql_command, (first_name, last_name, email, password, address, phone_number))
+
+            mydb.commit()
+            messagebox.showinfo("Registration Successful", "Customer registered successfully")
+
+    except Exception as e:
+        # Handle any database errors
+        messagebox.showerror("Error", f"An error occurred: {str(e)}")
+
+    finally:
+        # Close the database connection
+        mydb.close()
+
+
+# REGISTER CUSTOMER PAGE
+def register_customer():
+    register_screen = tk.Toplevel(root)
+    register_screen.title("Register")
+    register_screen.geometry("500x500")
+
+    # LABELS AND THEIR ENTRIES
+
+    # Customer First Name Label
+    first_name_label = tk.Label(register_screen, text="Enter your first name:")
+
+    # Customer First Name Entry
+    first_name_entry = tk.Entry(register_screen)
+
+    # Customer Last Name Label
+    last_name_label = tk.Label(register_screen, text="Enter your last name:")
+
+    # Customer Last Name Entry
+    last_name_entry = tk.Entry(register_screen)
+
+    # Customer Email Label
+    email_label = tk.Label(register_screen, text="Enter your email:")
+
+    # Customer Email Entry
+    email_entry = tk.Entry(register_screen)
+
+    # Customer Password Label
+    password_label = tk.Label(register_screen, text="Enter your password")
+
+    # Customer Password Entry
+    password_entry = tk.Entry(register_screen, show='*')
+
+    # Customer Address Label
+    address_label = tk.Label(register_screen, text="Enter your address:")
+
+    # Customer Address Entry
+    address_entry = tk.Entry(register_screen)
+
+    # Customer Phone Number Label
+    phone_number_label = tk.Label(register_screen, text="Enter your phone number:")
+
+    # Customer Phone Number Entry
+    phone_number_entry = tk.Entry(register_screen)
+
+    # PACKS
+
+    # First Name
+    first_name_label.pack(pady=10)
+    first_name_entry.pack(pady=5)
+
+    # Last Name
+    last_name_label.pack(pady=10)
+    last_name_entry.pack(pady=5)
+
+    # Email
+    email_label.pack(pady=10)
+    email_entry.pack(pady=5)
+
+    # Password
+    password_label.pack(pady=10)
+    password_entry.pack(pady=5)
+
+    # Address
+    address_label.pack(pady=10)
+    address_entry.pack(pady=5)
+
+    # Phone Number
+    phone_number_label.pack(pady=10)
+    phone_number_entry.pack(pady=5)
+
+    # Take the customer's details for registration
+    submit_button = tk.Button(register_screen, text="Submit",
+                              command=lambda: submit_register_customer(
+                                  first_name_entry.get(), last_name_entry.get(), email_entry.get(),
+                                  password_entry.get(), address_entry.get(), phone_number_entry.get()))
+
+    submit_button.pack(pady=20)
+
+
 def customer_login():
     login_customer = tk.Toplevel(root)
     login_customer.title("Customer Login")
@@ -208,6 +310,10 @@ def customer_login():
     login_button = tk.Button(login_customer, text="Login",
                              command=lambda: customer_page(login_customer, email_entry.get(), password_entry.get()))
 
+    # Register
+    register_label = tk.Label(login_customer, text="If you don't have an account, please register")
+    register_button = tk.Button(login_customer, text="Register", command=register_customer)
+
     email_label.pack(pady=10)
     email_entry.pack(pady=5)
 
@@ -215,6 +321,9 @@ def customer_login():
     password_entry.pack(pady=5)
 
     login_button.pack(pady=20)
+
+    register_label.pack(pady=10)
+    register_button.pack(pady=10)
 
 
 def customer_page(login_customer, email, password):
