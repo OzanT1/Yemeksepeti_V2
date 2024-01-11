@@ -17,6 +17,7 @@ mydb = mysql.connector.connect(
 
 mycursor = mydb.cursor()  # is an object to connect mydb
 
+
 # CHECK IF THE USER ENTER CORRECT EMAIL AND PASSWORD
 
 #       RESTAURANT AUTHENTICATE
@@ -45,6 +46,9 @@ def restaurant_login():
     login_button = tk.Button(login_restaurant, text="Login",
                              command=lambda: restaurant_page(login_restaurant, email_entry.get(), password_entry.get()))
 
+    register_label = tk.Label(login_restaurant, text="If you don't have an account, please register")
+    register_button = tk.Button(login_restaurant, text="Register", command=lambda: register_restaurant)
+
     email_label.pack(pady=10)
     email_entry.pack(pady=5)
 
@@ -52,6 +56,13 @@ def restaurant_login():
     password_entry.pack(pady=5)
 
     login_button.pack(pady=20)
+
+    register_label.pack(pady=10)
+    register_button.pack(pady=10)
+
+
+def register_restaurant(email, password):
+    
 
 
 # AFTER LOGIN, RUN THE RESTAURANT MAIN PAGE
