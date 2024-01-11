@@ -21,7 +21,7 @@ mycursor = mydb.cursor()  # is an object to connect mydb
 # CHECK IF THE USER ENTER CORRECT EMAIL AND PASSWORD
 
 #       RESTAURANT AUTHENTICATE
-def authenticate_restaurant(email, password):
+def authenticate_restaurant(email, password) -> bool:
     # Execute a query to check if there is a match for the provided email and password
     mycursor.execute("SELECT * FROM Restaurants WHERE email = %s AND password = %s", (email, password))
     restaurant = mycursor.fetchone()
@@ -191,6 +191,7 @@ def authenticate_customer(email, password):
     return customer is not None
 
 
+# REGISTER CUSTOMER PAGE
 def submit_register_customer(first_name, last_name, email, password, address, phone_number):
     try:
         # Check if the customer is already registered
@@ -217,7 +218,6 @@ def submit_register_customer(first_name, last_name, email, password, address, ph
         mydb.close()
 
 
-# REGISTER CUSTOMER PAGE
 def register_customer():
     register_screen = tk.Toplevel(root)
     register_screen.title("Register")
@@ -335,8 +335,6 @@ def customer_page(login_customer, email, password):
 
         customer_window = tk.Frame(root, padx=1, pady=1)
         customer_window.pack(padx=10, pady=10)
-        # customer_window.title("CUSTOMER MAIN PAGE")
-        # customer_window.geometry("1360x720")
 
         # Add widgets to the main page
         label = tk.Label(customer_window, text="Welcome to the Customer Main Page!")
@@ -355,9 +353,104 @@ def customer_action():
 
 #       CARRIER AUTHENTICATE
 def authenticate_carrier(email, password):
-    mycursor.execute("SELECT * FROM Carrier WHERE email = %s AND password = %s", (email, password))
+    mycursor.execute("SELECT * FROM Carriers WHERE email = %s AND password = %s", (email, password))
     carrier = mycursor.fetchone()
     return carrier is not None
+
+
+# REGISTER CARRIER PAGE
+def submit_register_carrier(first_name, last_name, email, password, phone_number):
+    try:
+        # Check if the carrier is already registered
+        mycursor.execute("SELECT * FROM Carriers WHERE email = %s AND password = %s", (email, password))
+        existing_carrier = mycursor.fetchone()
+
+        if existing_carrier:
+            messagebox.showerror("Authentication Failed", "User already registered")
+        else:
+            # Insert the new carrier into the database
+            sql_command = "INSERT INTO Carriers (firstName, lastName, email, password, phoneNumber) VALUES (%s, %s, %s, %s, %s)"
+
+            mycursor.execute(sql_command, (first_name, last_name, email, password, phone_number))
+
+            mydb.commit()
+            messagebox.showinfo("Registration Successful", "Carrier registered successfully")
+
+    except Exception as e:
+        # Handle any database errors
+        messagebox.showerror("Error", f"An error occurred: {str(e)}")
+
+    finally:
+        # Close the database connection
+        mydb.close()
+
+
+def register_carrier():
+    register_screen = tk.Toplevel(root)
+    register_screen.title("Register")
+    register_screen.geometry("500x500")
+
+    # LABELS AND THEIR ENTRIES
+
+    # Carrier First Name Label
+    first_name_label = tk.Label(register_screen, text="Enter your first name:")
+
+    # Carrier First Name Entry
+    first_name_entry = tk.Entry(register_screen)
+
+    # Carrier Last Name Label
+    last_name_label = tk.Label(register_screen, text="Enter your last name:")
+
+    # Carrier Last Name Entry
+    last_name_entry = tk.Entry(register_screen)
+
+    # Carrier Email Label
+    email_label = tk.Label(register_screen, text="Enter your email:")
+
+    # Carrier Email Entry
+    email_entry = tk.Entry(register_screen)
+
+    # Carrier Password Label
+    password_label = tk.Label(register_screen, text="Enter your password")
+
+    # Carrier Password Entry
+    password_entry = tk.Entry(register_screen, show='*')
+
+    # Carrier Phone Number Label
+    phone_number_label = tk.Label(register_screen, text="Enter your phone number:")
+
+    # Carrier Phone Number Entry
+    phone_number_entry = tk.Entry(register_screen)
+
+    # PACKS
+
+    # First Name
+    first_name_label.pack(pady=10)
+    first_name_entry.pack(pady=5)
+
+    # Last Name
+    last_name_label.pack(pady=10)
+    last_name_entry.pack(pady=5)
+
+    # Email
+    email_label.pack(pady=10)
+    email_entry.pack(pady=5)
+
+    # Password
+    password_label.pack(pady=10)
+    password_entry.pack(pady=5)
+
+    # Phone Number
+    phone_number_label.pack(pady=10)
+    phone_number_entry.pack(pady=5)
+
+    # Take the customer's details for registration
+    submit_button = tk.Button(register_screen, text="Submit",
+                              command=lambda: submit_register_carrier(
+                                  first_name_entry.get(), last_name_entry.get(), email_entry.get(),
+                                  password_entry.get(), phone_number_entry.get()))
+
+    submit_button.pack(pady=20)
 
 
 def carrier_login():
@@ -374,6 +467,10 @@ def carrier_login():
     login_button = tk.Button(login_carrier, text="Login",
                              command=lambda: carrier_page(login_carrier, email_entry.get(), password_entry.get()))
 
+    # Register
+    register_label = tk.Label(login_carrier, text="If you don't have an account, please register")
+    register_button = tk.Button(login_carrier, text="Register", command=register_carrier)
+
     email_label.pack(pady=10)
     email_entry.pack(pady=5)
 
@@ -381,6 +478,9 @@ def carrier_login():
     password_entry.pack(pady=5)
 
     login_button.pack(pady=20)
+
+    register_label.pack(pady=10)
+    register_button.pack(pady=10)
 
 
 def carrier_page(login_carrier, email, password):
@@ -394,7 +494,7 @@ def carrier_page(login_carrier, email, password):
         carrier_window.pack(padx=10, pady=10)
 
         # Add widgets to the main page
-        label = tk.Label(carrier_window, text="Welcome to the Customer Main Page!")
+        label = tk.Label(carrier_window, text="Welcome to the Carrier Main Page!")
         label.pack(pady=20, side=tk.TOP)
 
         home_button = tk.Button(carrier_window, text="Home", command=lambda: go_to_home(carrier_window))
