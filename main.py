@@ -47,10 +47,7 @@ def restaurant_login():
                              command=lambda: restaurant_page(login_restaurant, email_entry.get(), password_entry.get()))
     # Register
     register_label = tk.Label(login_restaurant, text="If you don't have an account, please register")
-    register_button = tk.Button(login_restaurant, text="Register", command=lambda: register_restaurant)
-
-    register_label = tk.Label(login_restaurant, text="If you don't have an account, please register")
-    register_button = tk.Button(login_restaurant, text="Register", command=lambda: register_restaurant)
+    register_button = tk.Button(login_restaurant, text="Register", command=register_restaurant)
 
     email_label.pack(pady=10)
     email_entry.pack(pady=5)
@@ -64,16 +61,103 @@ def restaurant_login():
     register_button.pack(pady=10)
 
 
+# REGISTER PAGE
+def submit_register_restaurant(name, email, password, address, phone_number):
+    try:
+        # Check if the restaurant is already registered
+        mycursor.execute("SELECT * FROM Restaurants WHERE email = %s AND password = %s", (email, password))
+        existing_restaurant = mycursor.fetchone()
+
+        if existing_restaurant:
+            messagebox.showerror("Authentication Failed", "User already registered")
+        else:
+            # Insert the new restaurant into the database
+            # mycursor.execute("INSERT INTO Restaurants ('restaurantName', 'email', 'password', 'address', 'phoneNumber') "
+            #                  "VALUES (%s, %s, %s, %s, %s)",
+            #                  (name, email, password, address, phone_number))
+            sql_command = (("INSERT INTO Restaurants (restaurantName, email, password, address, phoneNumber) VALUES (%s, %s, %s, %s, %s)"),
+                           (name, email, password, address, phone_number))
+
+            mycursor.execute(sql_command)
+
+            mydb.commit()
+            messagebox.showinfo("Registration Successful", "Restaurant registered successfully")
+
+    except Exception as e:
+        # Handle any database errors
+        messagebox.showerror("Error", f"An error occurred: {str(e)}")
+
+    finally:
+        # Close the database connection
+        mydb.close()
+
+
 def register_restaurant():
     register_screen = tk.Toplevel(root)
     register_screen.title("Register")
-    register_screen.geometry("300x400")
+    register_screen.geometry("500x500")
 
-    register_email_label = tk.Label(register_screen, text="Email:")
-    register_password_label = tk.Label(register_screen, text="Password:")
+    # LABELS AND THEIR ENTRIES
 
-    register_email_entry = tk.Entry(register_screen)
-    register_password_entry = tk.Entry(register_screen, show='*')
+    # Restaurant name
+    restaurant_name_label = tk.Label(register_screen, text="Name of the restaurant:")
+
+    # Restaurant NAME entry
+    restaurant_name_entry = tk.Entry(register_screen)
+
+    # Restaurant EMAIL
+    email_label = tk.Label(register_screen, text="Email:")
+
+    # Restaurant EMAIL entry
+    email_entry = tk.Entry(register_screen)
+
+    # Restaurant PASSWORD
+    password_label = tk.Label(register_screen, text="Password:")
+
+    # Restaurant PASSWORD entry
+    password_entry = tk.Entry(register_screen, show='*')
+
+    # Restaurant ADDRESS
+    address_label = tk.Label(register_screen, text="Address:")
+
+    # Restaurant ADDRESS entry
+    address_entry = tk.Entry(register_screen)
+
+    # Restaurant PHONE NUMBER
+    phone_number_label = tk.Label(register_screen, text="Enter phone number:")
+
+    # Restaurant PHONE NUMBER entry
+    phone_number_entry = tk.Entry(register_screen)
+
+    # PACKS
+
+    # restaurant name
+    restaurant_name_label.pack(pady=10)
+    restaurant_name_entry.pack(pady=5)
+
+    # email
+    email_label.pack(pady=10)
+    email_entry.pack(pady=5)
+
+    # password
+    password_label.pack(pady=10)
+    password_entry.pack(pady=5)
+
+    # address
+    address_label.pack(pady=10)
+    address_entry.pack(pady=5)
+
+    # phone number
+    phone_number_label.pack(pady=10)
+    phone_number_entry.pack(pady=5)
+
+    # Take the restaurant user's details for registration
+    submit_button = tk.Button(register_screen, text="Submit",
+                              command=lambda: submit_register_restaurant(restaurant_name_entry.get(),
+                                                                         email_entry.get(), password_entry.get(),
+                                                                         address_entry.get(), phone_number_entry.get()))
+    # Submit button
+    submit_button.pack(pady=20)
 
 
 # AFTER LOGIN, RUN THE RESTAURANT MAIN PAGE
