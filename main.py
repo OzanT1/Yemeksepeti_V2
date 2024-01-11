@@ -315,7 +315,7 @@ def main():
     entrance_page = tk.Frame(root, padx=1, pady=1)
     entrance_page.pack(padx=10, pady=10)
 
-    # BUTTONS FROM the MAIN PAGE
+    # BUTTONS IN the MAIN PAGE
     restaurant_entrance_button = tk.Button(entrance_page, text="Restaurant Entrance", command=restaurant_action,
                                            width=20,
                                            height=10)
