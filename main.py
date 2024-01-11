@@ -63,6 +63,7 @@ def restaurant_login():
 
 # REGISTER PAGE
 def submit_register_restaurant(name, email, password, address, phone_number):
+
     try:
         # Check if the restaurant is already registered
         mycursor.execute("SELECT * FROM Restaurants WHERE email = %s AND password = %s", (email, password))
@@ -72,13 +73,9 @@ def submit_register_restaurant(name, email, password, address, phone_number):
             messagebox.showerror("Authentication Failed", "User already registered")
         else:
             # Insert the new restaurant into the database
-            # mycursor.execute("INSERT INTO Restaurants ('restaurantName', 'email', 'password', 'address', 'phoneNumber') "
-            #                  "VALUES (%s, %s, %s, %s, %s)",
-            #                  (name, email, password, address, phone_number))
-            sql_command = (("INSERT INTO Restaurants (restaurantName, email, password, address, phoneNumber) VALUES (%s, %s, %s, %s, %s)"),
-                           (name, email, password, address, phone_number))
+            sql_command = "INSERT INTO Restaurants (restaurantName, email, password, address, phoneNumber) VALUES (%s, %s, %s, %s, %s)"
 
-            mycursor.execute(sql_command)
+            mycursor.execute(sql_command, (name, email, password, address, phone_number))
 
             mydb.commit()
             messagebox.showinfo("Registration Successful", "Restaurant registered successfully")
