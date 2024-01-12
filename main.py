@@ -788,19 +788,96 @@ def view_orders(carrier_window):
 
 # Carrier Main Page
 def carrier_page(login_carrier, email, password):
+    # Authenticate the carrier
     if authenticate_carrier(email, password):
+        # Destroy the login window and show the main page
         login_carrier.destroy()
 
+        # Destroy entrance page, so you are into the next page
         entrance_page.pack_forget()
 
+        # Retrieve the carrier ID based on the logged-in carrier's email and password
+        mycursor.execute("SELECT carrierID FROM Carriers WHERE email = %s AND password = %s", (email, password))
+        carrier_info = mycursor.fetchone()
+
+        if carrier_info:
+            carrier_id = carrier_info[0]
+        else:
+            # Handle the case where carrier information is not found
+            messagebox.showerror("Error", "Failed to retrieve carrier information.")
+            return
+
+        def display_orders():
+            # Retrieve available orders from the database
+            mycursor.execute("SELECT orderID, orderDate, paymentMethod FROM Orders WHERE carrierID IS NULL")
+            orders = mycursor.fetchall()
+
+            # Destroy existing widgets in carrier_window
+            for widget in carrier_window.winfo_children():
+                widget.destroy()
+
+            # Display the orders on the left side of the carrier_window
+            orders_frame = tk.Frame(carrier_window)
+            orders_frame.pack(side=tk.LEFT, padx=10)
+
+            orders_label = tk.Label(orders_frame, text="Available Orders")
+            orders_label.pack(pady=10)
+
+            for order in orders:
+                order_id = order[0]
+                order_date = order[1]
+                payment_method = order[2]
+
+                order_text = f"Order ID: {order_id} - Date: {order_date} - Payment Method: {payment_method}"
+                order_label = tk.Label(orders_frame, text=order_text)
+                order_label.pack(pady=5)
+
+            # Display the "Select Order" button on the right side of the carrier_window
+            select_order_button = tk.Button(carrier_window, text="Select Order",
+                                            command=lambda: select_order(selected_order_id.get()))
+            select_order_button.pack(side=tk.RIGHT, padx=10, pady=10)
+
+            selected_order_id = tk.StringVar()
+            selected_order_entry = tk.Entry(carrier_window, textvariable=selected_order_id)
+            selected_order_entry.pack(side=tk.RIGHT, padx=10, pady=10)
+
+            selected_order_label = tk.Label(carrier_window, text="Enter Order ID:")
+            selected_order_label.pack(side=tk.RIGHT, padx=10, pady=10)
+
+            # Function to select an order and update the UI
+            def select_order(order_id):
+                if order_id:
+                    # Update the order with the carrier's ID
+                    mycursor.execute("UPDATE Orders SET carrierID = %s WHERE orderID = %s", (carrier_id, order_id))
+                    mydb.commit()
+
+                    # Inform the carrier about the successful selection
+                    messagebox.showinfo("Order Selected", f"Order {order_id} has been assigned to you.")
+
+                    # Update the UI by redisplaying the orders
+                    display_orders()
+
+                else:
+                    # Handle the case where no order ID is entered
+                    messagebox.showerror("Error", "Please enter a valid Order ID.")
+
+        # Initialize carrier_window
         carrier_window = tk.Frame(root, padx=1, pady=1)
         carrier_window.pack(padx=10, pady=10)
 
-        order_button = tk.Button(carrier_window, text="Orders", command=lambda: view_orders(carrier_window))
-        order_button.pack(pady=5)
+        label = tk.Label(carrier_window, text="Welcome to the Carrier Main Page!")
+        label.pack(pady=20, side=tk.TOP)
+
+        # Display available orders and "Select Order" button
+        display_orders()
 
         home_button = tk.Button(carrier_window, text="Home", command=lambda: go_to_home(carrier_window))
         home_button.pack(pady=20, padx=20, side=tk.BOTTOM)
+
+    else:
+        messagebox.showerror("Authentication Failed", "Incorrect email or password.")
+
+
 
 
 def carrier_action():
