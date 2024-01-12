@@ -748,7 +748,7 @@ def carrier_page(login_carrier, email, password):
 
         # Initialize carrier_window
         carrier_window = tk.Frame(root, padx=1, pady=1)
-        carrier_window.pack(padx=10, pady=10)
+        carrier_window.pack(padx=10, pady=10, fill=tk.BOTH, expand=True)
 
         label = tk.Label(carrier_window, text="Welcome to the Carrier Main Page!")
         label.pack(pady=20, side=tk.TOP)
@@ -787,13 +787,13 @@ def carrier_page(login_carrier, email, password):
 
             # Display available orders on the left side of the carrier_window with a scrollbar
             available_orders_frame = tk.Frame(carrier_window)
-            available_orders_frame.pack(side=tk.LEFT, padx=10, pady=10)
+            available_orders_frame.pack(side=tk.LEFT, padx=10, pady=10, fill=tk.BOTH, expand=True)
 
             available_orders_label = tk.Label(available_orders_frame, text="Available Orders")
             available_orders_label.pack(pady=10)
 
             available_orders_listbox = tk.Listbox(available_orders_frame, selectmode=tk.SINGLE)
-            available_orders_listbox.pack(side=tk.LEFT, pady=5)
+            available_orders_listbox.pack(side=tk.LEFT, pady=5, fill=tk.BOTH, expand=True)
 
             available_orders_scrollbar = tk.Scrollbar(available_orders_frame, orient=tk.VERTICAL,
                                                       command=available_orders_listbox.yview)
@@ -807,13 +807,13 @@ def carrier_page(login_carrier, email, password):
 
             # Display assigned orders in the middle of the carrier_window
             assigned_orders_frame = tk.Frame(carrier_window)
-            assigned_orders_frame.pack(side=tk.LEFT, padx=10, pady=10)
+            assigned_orders_frame.pack(side=tk.LEFT, padx=10, pady=10, fill=tk.BOTH, expand=True)
 
             assigned_orders_label = tk.Label(assigned_orders_frame, text="Assigned Orders")
             assigned_orders_label.pack(pady=10)
 
             assigned_orders_listbox = tk.Listbox(assigned_orders_frame, selectmode=tk.SINGLE)
-            assigned_orders_listbox.pack(pady=5)
+            assigned_orders_listbox.pack(pady=5, fill=tk.BOTH, expand=True)
 
             for order in assigned_orders:
                 order_text = f"Order ID: {order[0]} - Date: {order[1]} - Payment Method: {order[2]}"
