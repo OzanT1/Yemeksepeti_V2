@@ -327,6 +327,21 @@ def customer_login():
 
 
 def customer_page(login_customer, email, password):
+    def show_selected_restaurant_items(event):
+        # Clear the existing items in items_listbox
+        items_listbox.delete(0, tk.END)
+
+        # Get the selected restaurant
+        selected_restaurant = str(restaurants_listbox.get(restaurants_listbox.curselection()))
+
+        # Fetch items for the selected restaurant from the database
+        sql = f"SELECT Items.itemName FROM Items INNER JOIN Restaurants ON Items.restaurantID = Restaurants.restaurantID WHERE Restaurants.restaurantName = '{selected_restaurant}'"
+        mycursor.execute(sql)
+
+        # Insert fetched items into the items_listbox
+        for item in mycursor.fetchall():
+            items_listbox.insert(tk.END, item[0])
+
     if authenticate_customer(email, password):
 
         login_customer.destroy()
@@ -336,15 +351,11 @@ def customer_page(login_customer, email, password):
         customer_frame = tk.Frame(root, padx=10, pady=10, bg="red")
         customer_frame.pack(padx=10, pady=10, expand=True, fill=tk.BOTH)
 
-        # Add widgets to the main page
-        #label = tk.Label(customer_frame, text="Welcome to the Customer Main Page!")
-        #label.pack(pady=20, side=tk.TOP)
-
         home_button = tk.Button(customer_frame, text="Home", command=lambda: go_to_home(customer_frame))
         home_button.pack(pady=20, padx=20, side=tk.TOP)
 
-        restaurants_list_frame = tk.Frame(customer_frame, padx=10, pady=10, bg="black", width=300, height=500)
-        restaurants_list_frame.pack(padx=20, pady=50, side=tk.LEFT)
+        restaurants_list_frame = tk.Frame(customer_frame, padx=10, pady=10, bg="black")
+        restaurants_list_frame.pack(padx=10, pady=10, side=tk.LEFT, fill=tk.BOTH, expand=True)
 
         # Scrollbar for the list of restaurants
         scrollbar = tk.Scrollbar(restaurants_list_frame, orient=tk.VERTICAL)
@@ -357,19 +368,33 @@ def customer_page(login_customer, email, password):
         scrollbar.config(command=restaurants_listbox.yview)
         scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
 
-        sql = "SELECT distinct restaurantName FROM Restaurants"
+        sql = "SELECT restaurantName FROM Restaurants"
         mycursor.execute(sql)
 
+        restaurants = []
+
+        # Get from database
         for name in mycursor.fetchall():
-            restaurants_listbox.insert(tk.END, name[0])
+            restaurants.append(name[0])
+
+        # Insert restaurants into the Listbox
+        for restaurant in restaurants:
+            restaurants_listbox.insert(tk.END, restaurant)
+
+        # Bind the show_selected_restaurant_items function to the selection event
+        restaurants_listbox.bind("<<ListboxSelect>>", show_selected_restaurant_items)
 
 
 
-        items_list_frame = tk.Frame(customer_frame, padx=10, pady=10, bg="blue", width=500, height=500)
-        items_list_frame.pack(padx=20, pady=100, side=tk.LEFT)
+        items_list_frame = tk.Frame(customer_frame, padx=10, pady=10, bg="blue")
+        items_list_frame.pack(padx=10, pady=10, side=tk.LEFT, fill=tk.BOTH, expand=1)
 
-        basket_list_frame = tk.Frame(customer_frame, padx=10, pady=10, bg="black", width=500, height=500)
-        basket_list_frame.pack(padx=20, pady=100, side=tk.LEFT)
+        basket_list_frame = tk.Frame(customer_frame, padx=10, pady=10, bg="black")
+        basket_list_frame.pack(padx=10, pady=10, side=tk.LEFT, fill=tk.BOTH, expand=1)
+
+        # Listbox to display the items
+        items_listbox = tk.Listbox(items_list_frame)
+        items_listbox.pack(fill=tk.BOTH, expand=True)
 
         customer_basket = []
 
