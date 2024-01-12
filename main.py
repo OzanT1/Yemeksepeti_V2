@@ -220,6 +220,11 @@ def restaurant_page(login_restaurant, email, password):
 
 
 
+
+            home_button_restaurant = tk.Button(restaurant_window, text="Home", command=)
+            home_button_restaurant.pack(pady=20)
+
+
         def display_daily_balance_sheet():
             # Get the restaurant information based on the logged-in restaurant's email and password
             mycursor.execute("SELECT restaurantID, restaurantName FROM Restaurants WHERE email = %s AND password = %s",
