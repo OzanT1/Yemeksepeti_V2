@@ -1,5 +1,5 @@
 import datetime
-from tkinter import messagebox
+from tkinter import messagebox, ttk
 
 import mysql.connector
 import tkinter as tk
@@ -675,9 +675,64 @@ def carrier_login():
     register_button.pack(pady=10)
 
 
+def selected_orders(selected_order, orders_frame, orders_page):
+    # Here you can implement the logic to handle the selected order
+    order_id, order_date, payment_method, customer_id, carrier_id = selected_order
+
+    # Ask for confirmation before deletion
+    confirmation = messagebox.askyesno("Confirm Deletion", f"Do you want to delete Order ID {order_id}?")
+
+    if confirmation:
+        # Perform the deletion (replace this with your actual deletion logic)
+        # For demonstration purposes, let's assume there's a delete_order function
+        # that removes the order from the database
+        delete_order(order_id)
+
+        # Destroy the order button
+        for widget in orders_frame.winfo_children():
+            if widget.cget("text").startswith(f"Order ID: {order_id}"):
+                widget.destroy()
+
+        # Close the orders_page
+        orders_page.destroy()
+
+
+def delete_order(order_id):
+    # Implement your logic to delete the order from the database
+    # For example, you can use a DELETE SQL query
+    delete_sql = "DELETE FROM orders WHERE orderID = %s"
+    mycursor.execute(delete_sql, (order_id,))
+    mydb.commit()  # Don't forget to commit the changes to the database
+
+
+def view_orders(carrier_window):
+
+    # Orders Top level
+    orders_page = tk.Toplevel(carrier_window)
+    orders_page.title("Orders")
+    orders_page.geometry("300x400")
+
+    # Orders Frame that is linked to orders_page top level
+    orders_frame = tk.Frame(orders_page, padx=1, pady=1)
+    orders_frame.pack(padx=10, pady=10)
+
+    sql_command = "SELECT * FROM orders"
+    mycursor.execute(sql_command)
+
+    orders = mycursor.fetchall()
+    for order in orders:
+        order_id, order_date, payment_method, customer_id, carrier_id = order
+
+        # Display order details in a Label
+        order_buttons = tk.Button(orders_frame, text=f"Order ID: {order_id}, Date: {order_date}, "
+                                                     f"Payment: {payment_method}, Customer: {customer_id}",
+                                  command=lambda: selected_orders(order, orders_frame, orders_page))
+        order_buttons.pack(pady=5, anchor=tk.W)
+
+
+# Carrier Main Page
 def carrier_page(login_carrier, email, password):
     if authenticate_carrier(email, password):
-
         login_carrier.destroy()
 
         entrance_page.pack_forget()
@@ -685,15 +740,11 @@ def carrier_page(login_carrier, email, password):
         carrier_window = tk.Frame(root, padx=1, pady=1)
         carrier_window.pack(padx=10, pady=10)
 
-        # Add widgets to the main page
-        label = tk.Label(carrier_window, text="Welcome to the Carrier Main Page!")
-        label.pack(pady=20, side=tk.TOP)
+        order_button = tk.Button(carrier_window, text="Orders", command=lambda: view_orders(carrier_window))
+        order_button.pack(pady=5)
 
         home_button = tk.Button(carrier_window, text="Home", command=lambda: go_to_home(carrier_window))
         home_button.pack(pady=20, padx=20, side=tk.BOTTOM)
-
-    else:
-        messagebox.showerror("Authentication Failed", "Incorrect email or password.")
 
 
 def carrier_action():
