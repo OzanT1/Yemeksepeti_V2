@@ -1,3 +1,4 @@
+import datetime
 from tkinter import messagebox
 
 import mysql.connector
@@ -166,15 +167,206 @@ def restaurant_page(login_restaurant, email, password):
         # Destroy entrance page, so you are into next page
         entrance_page.pack_forget()
 
+        def display_restaurant_menu():
+            # Retrieve the restaurant information and menu from the database based on the logged-in restaurant's email and password
+            mycursor.execute("SELECT * FROM Restaurants WHERE email = %s AND password = %s", (email, password))
+            restaurant = mycursor.fetchone()
+
+            if restaurant:
+                restaurant_id = restaurant[0]
+                restaurant_name = restaurant[1]
+
+                # Retrieve the menu items for the restaurant
+                mycursor.execute("SELECT * FROM Items WHERE restaurantID = %s", (restaurant_id,))
+                menu_items = mycursor.fetchall()
+
+                # Destroy the existing widgets in restaurant_window
+                for widget in restaurant_window.winfo_children():
+                    widget.destroy()
+
+                # Display the restaurant information
+                label = tk.Label(restaurant_window, text=f"Welcome to {restaurant_name}!\nRestaurant Menu:")
+                label.pack(pady=20, side=tk.TOP)
+
+                # Display the menu items
+                for item in menu_items:
+                    item_label = tk.Label(restaurant_window, text=f"{item[1]} - ${item[2]:.2f} - {item[3]}")
+                    item_label.pack(pady=5)
+
+        def display_daily_balance_sheet():
+            # Get the restaurant information based on the logged-in restaurant's email and password
+            mycursor.execute("SELECT restaurantID, restaurantName FROM Restaurants WHERE email = %s AND password = %s",
+                             (email, password))
+            restaurant_info = mycursor.fetchone()
+
+            if restaurant_info:
+                restaurant_id = restaurant_info[0]
+                restaurant_name = restaurant_info[1]
+
+                # Get the current date
+                current_date = datetime.datetime.now().date()
+
+                # Retrieve order details for the current date and specific restaurant
+                mycursor.execute("SELECT od.itemID, od.quantity FROM OrderDetails od "
+                                 "INNER JOIN Orders o ON od.orderID = o.orderID "
+                                 "INNER JOIN Items i ON od.itemID = i.itemID "
+                                 "INNER JOIN Restaurants r ON i.restaurantID = r.restaurantID "
+                                 "WHERE o.orderDate = %s AND o.customerID IS NULL AND r.restaurantID = %s",
+                                 (current_date, restaurant_id))
+                order_details = mycursor.fetchall()
+
+                # Destroy existing widgets in restaurant_window
+                for widget in restaurant_window.winfo_children():
+                    widget.destroy()
+
+                # Display the daily balance sheet
+                label = tk.Label(restaurant_window,
+                                 text=f"Daily Balance Sheet for {current_date} - Restaurant: {restaurant_name}")
+                label.pack(pady=20, side=tk.TOP)
+
+                # Display order details
+                total_revenue = 0.0
+                total_quantity = 0
+                total_profit = 0.0
+
+                for order_detail in order_details:
+                    item_id = order_detail[0]
+                    quantity = order_detail[1]
+
+                    # Retrieve item information
+                    mycursor.execute("SELECT itemName, price, cost FROM Items WHERE itemID = %s", (item_id,))
+                    item_info = mycursor.fetchone()
+
+                    if item_info:
+                        item_name = item_info[0]
+                        item_price = item_info[1]
+                        item_cost = item_info[2]
+                        revenue = quantity * item_price
+                        profit = quantity * (item_price - item_cost)
+
+                        total_revenue += revenue
+                        total_quantity += quantity
+                        total_profit += profit
+
+                        order_label = tk.Label(restaurant_window,
+                                               text=f"{item_name} - Quantity: {quantity} - Revenue: ${revenue:.2f} - Profit: ${profit:.2f}")
+                        order_label.pack(pady=5)
+
+                # Display total revenue, total quantity, and total profit
+                total_revenue_label = tk.Label(restaurant_window, text=f"Total Revenue: ${total_revenue:.2f}")
+                total_revenue_label.pack(pady=5)
+
+                total_quantity_label = tk.Label(restaurant_window, text=f"Total Quantity Sold: {total_quantity}")
+                total_quantity_label.pack(pady=5)
+
+                total_profit_label = tk.Label(restaurant_window, text=f"Total Profit: ${total_profit:.2f}")
+                total_profit_label.pack(pady=10)
+
+            else:
+                messagebox.showerror("Error", "Failed to retrieve restaurant information.")
+
+        def add_item():
+            add_item_window = tk.Toplevel(root)
+            add_item_window.title("Add Item")
+            add_item_window.geometry("900x600")
+
+            item_name_label = tk.Label(add_item_window, text="Item Name:")
+            item_name_entry = tk.Entry(add_item_window)
+
+            price_label = tk.Label(add_item_window, text="Price:")
+            price_entry = tk.Entry(add_item_window)
+
+            food_type_label = tk.Label(add_item_window, text="Food Type:")
+            food_type_entry = tk.Entry(add_item_window)
+
+            add_button = tk.Button(add_item_window, text="Add Item",
+                                   command=lambda: add_item_to_menu(item_name_entry.get(), price_entry.get(),
+                                                                    food_type_entry.get(), add_item_window))
+
+            item_name_label.pack(pady=10)
+            item_name_entry.pack(pady=5)
+
+            price_label.pack(pady=10)
+            price_entry.pack(pady=5)
+
+            food_type_label.pack(pady=10)
+            food_type_entry.pack(pady=5)
+
+            add_button.pack(pady=20)
+
+        def delete_item():
+            delete_item_window = tk.Toplevel(root)
+            delete_item_window.title("Delete Item")
+            delete_item_window.geometry("300x200")
+
+            item_name_label = tk.Label(delete_item_window, text="Item Name:")
+            item_name_entry = tk.Entry(delete_item_window)
+
+            delete_button = tk.Button(delete_item_window, text="Delete Item",
+                                      command=lambda: delete_item_from_menu(item_name_entry.get(), delete_item_window))
+
+            item_name_label.pack(pady=10)
+            item_name_entry.pack(pady=5)
+            delete_button.pack(pady=20)
+
+        def add_item_to_menu(item_name, price, food_type, window):
+            # Get the restaurant ID based on the logged-in restaurant's email and password
+            mycursor.execute("SELECT restaurantID FROM Restaurants WHERE email = %s AND password = %s",
+                             (email, password))
+            restaurant_id = mycursor.fetchone()
+
+            if restaurant_id:
+                restaurant_id = restaurant_id[0]
+
+                # Add the item to the 'Items' table in the database
+                mycursor.execute("INSERT INTO Items (itemName, price, foodType, restaurantID) VALUES (%s, %s, %s, %s)",
+                                 (item_name, price, food_type, restaurant_id))
+                mydb.commit()
+
+                messagebox.showinfo("Item Added", f"Item '{item_name}' added to the menu.")
+                window.destroy()
+            else:
+                messagebox.showerror("Error", "Failed to retrieve restaurant information.")
+
+        def delete_item_from_menu(item_name, window):
+            # Get the restaurant ID based on the logged-in restaurant's email and password
+            mycursor.execute("SELECT restaurantID FROM Restaurants WHERE email = %s AND password = %s",
+                             (email, password))
+            restaurant_id = mycursor.fetchone()
+
+            if restaurant_id:
+                restaurant_id = restaurant_id[0]
+
+                # Delete the item from the 'Items' table in the database
+                mycursor.execute("DELETE FROM Items WHERE restaurantID = %s AND itemName = %s",
+                                 (restaurant_id, item_name))
+                mydb.commit()
+
+                messagebox.showinfo("Item Deleted", f"Item '{item_name}' deleted from the menu.")
+                window.destroy()
+            else:
+                messagebox.showerror("Error", "Failed to retrieve restaurant information.")
+
         restaurant_window = tk.Frame(root, padx=1, pady=1)
         restaurant_window.pack(padx=10, pady=10)
 
-        # Add widgets to the main page
         label = tk.Label(restaurant_window, text="Welcome to the Restaurant Main Page!")
         label.pack(pady=20, side=tk.TOP)
 
+        display_balance_sheet_button = tk.Button(restaurant_window, text="Display Balance Sheet",
+                                                 command=display_daily_balance_sheet)
+        display_menu_button = tk.Button(restaurant_window, text="Display Menu", command=display_restaurant_menu)
+        add_item_button = tk.Button(restaurant_window, text="Add Item", command=add_item)
+        delete_item_button = tk.Button(restaurant_window, text="Delete Item", command=delete_item)
+
+        display_balance_sheet_button.pack(pady=10)
+        display_menu_button.pack(pady=10)
+        add_item_button.pack(pady=10)
+        delete_item_button.pack(pady=10)
+
         home_button = tk.Button(restaurant_window, text="Home", command=lambda: go_to_home(restaurant_window))
         home_button.pack(pady=20, padx=20, side=tk.BOTTOM)
+
 
     else:
         messagebox.showerror("Authentication Failed", "Incorrect email or password.")
