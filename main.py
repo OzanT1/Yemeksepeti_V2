@@ -218,11 +218,12 @@ def restaurant_page(login_restaurant, email, password):
                     item_label = tk.Label(restaurant_window, text=f"{item[1]} - ${item[2]:.2f} - {item[3]}")
                     item_label.pack(pady=5)
 
-<<<<<<< Updated upstream
-=======
 
 
->>>>>>> Stashed changes
+            home_button_restaurant = tk.Button(restaurant_window, text="Home", command=)
+            home_button_restaurant.pack(pady=20)
+
+
         def display_daily_balance_sheet():
             # Get the restaurant information based on the logged-in restaurant's email and password
             mycursor.execute("SELECT restaurantID, restaurantName FROM Restaurants WHERE email = %s AND password = %s",
@@ -389,14 +390,15 @@ def restaurant_page(login_restaurant, email, password):
         restaurant_window = tk.Frame(root, padx=1, pady=1)
         restaurant_window.pack(padx=10, pady=10)
 
-        label = tk.Label(restaurant_window, text="Welcome to the Restaurant Main Page!")
+        label = tk.Label(restaurant_window, text="Welcome to the Restaurant Main Page!", font=("Helvetica"))
         label.pack(pady=20, side=tk.TOP)
 
         display_balance_sheet_button = tk.Button(restaurant_window, text="Display Balance Sheet",
-                                                 command=display_daily_balance_sheet)
-        display_menu_button = tk.Button(restaurant_window, text="Display Menu", command=display_restaurant_menu)
-        add_item_button = tk.Button(restaurant_window, text="Add Item", command=add_item)
-        delete_item_button = tk.Button(restaurant_window, text="Delete Item", command=delete_item)
+                                                 command=display_daily_balance_sheet, width=20, height=5)
+        display_menu_button = tk.Button(restaurant_window, text="Display Menu", command=display_restaurant_menu,
+                                        width=20, height=5)
+        add_item_button = tk.Button(restaurant_window, text="Add Item", command=add_item, width=20, height=5)
+        delete_item_button = tk.Button(restaurant_window, text="Delete Item", command=delete_item, width=20, height=5)
 
         display_balance_sheet_button.pack(pady=10)
         display_menu_button.pack(pady=10)
@@ -556,8 +558,8 @@ def customer_login():
     register_label.pack(pady=10)
     register_button.pack(pady=10)
 
-
 def customer_page(login_customer, email, password):
+
     def show_selected_restaurant_items(event):
         # Clear the existing items in items_listbox
         items_listbox.delete(0, tk.END)
@@ -566,12 +568,33 @@ def customer_page(login_customer, email, password):
         selected_restaurant = str(restaurants_listbox.get(restaurants_listbox.curselection()))
 
         # Fetch items for the selected restaurant from the database
-        sql = f"SELECT Items.itemName FROM Items INNER JOIN Restaurants ON Items.restaurantID = Restaurants.restaurantID WHERE Restaurants.restaurantName = '{selected_restaurant}'"
+        sql = f"SELECT Items.itemName, Items.price, Items.foodType FROM Items INNER JOIN Restaurants ON Items.restaurantID = Restaurants.restaurantID WHERE Restaurants.restaurantName = '{selected_restaurant}'"
         mycursor.execute(sql)
 
         # Insert fetched items into the items_listbox
         for item in mycursor.fetchall():
-            items_listbox.insert(tk.END, item[0])
+            items_listbox.insert(tk.END, item)
+
+    customer_basket = []
+    def add_to_basket(event):  # WORK IN PROGRESS
+        selected_item = items_listbox.get(items_listbox.curselection())  # selected_item is a tuple
+
+        # Add the selected item to the basket
+        basket_listbox.insert(tk.END, selected_item)
+
+        # Calculate the total price in the basket
+        #total_price = sum(item[1] for item in basket_listbox.get(0, tk.END))
+        total_price = 0;
+
+        customer_basket = basket_listbox.get(0, tk.END)
+
+        for item in customer_basket:
+            total_price += item[1]
+
+
+        print("Total Price:", total_price)
+
+        show_selected_restaurant_items(event)
 
     if authenticate_customer(email, password):
 
@@ -579,7 +602,7 @@ def customer_page(login_customer, email, password):
 
         entrance_page.pack_forget()
 
-        customer_frame = tk.Frame(root, padx=10, pady=10, bg="red")
+        customer_frame = tk.Frame(root, padx=10, pady=10, bg="grey")
         customer_frame.pack(padx=10, pady=10, expand=True, fill=tk.BOTH)
 
         home_button = tk.Button(customer_frame, text="Home", command=lambda: go_to_home(customer_frame))
@@ -615,8 +638,6 @@ def customer_page(login_customer, email, password):
         # Bind the show_selected_restaurant_items function to the selection event
         restaurants_listbox.bind("<<ListboxSelect>>", show_selected_restaurant_items)
 
-
-
         items_list_frame = tk.Frame(customer_frame, padx=10, pady=10, bg="blue")
         items_list_frame.pack(padx=10, pady=10, side=tk.LEFT, fill=tk.BOTH, expand=1)
 
@@ -627,7 +648,12 @@ def customer_page(login_customer, email, password):
         items_listbox = tk.Listbox(items_list_frame)
         items_listbox.pack(fill=tk.BOTH, expand=True)
 
-        customer_basket = []
+        # Bind the add_to_basket function to the selection event
+        items_listbox.bind("<<ListboxSelect>>", add_to_basket)
+
+        # Listbox to display the basket
+        basket_listbox = tk.Listbox(basket_list_frame)
+        basket_listbox.pack(fill=tk.BOTH, expand=True)
 
 
     else:
@@ -770,61 +796,6 @@ def carrier_login():
     register_button.pack(pady=10)
 
 
-def selected_orders(selected_order, orders_frame, orders_page):
-    # Here you can implement the logic to handle the selected order
-    order_id, order_date, payment_method, customer_id, carrier_id = selected_order
-
-    # Ask for confirmation before deletion
-    confirmation = messagebox.askyesno("Confirm Deletion", f"Do you want to delete Order ID {order_id}?")
-
-    if confirmation:
-        # Perform the deletion (replace this with your actual deletion logic)
-        # For demonstration purposes, let's assume there's a delete_order function
-        # that removes the order from the database
-        delete_order(order_id)
-
-        # Destroy the order button
-        for widget in orders_frame.winfo_children():
-            if widget.cget("text").startswith(f"Order ID: {order_id}"):
-                widget.destroy()
-
-        # Close the orders_page
-        orders_page.destroy()
-
-
-def delete_order(order_id):
-    # Implement your logic to delete the order from the database
-    # For example, you can use a DELETE SQL query
-    delete_sql = "DELETE FROM orders WHERE orderID = %s"
-    mycursor.execute(delete_sql, (order_id,))
-    mydb.commit()  # Don't forget to commit the changes to the database
-
-
-def view_orders(carrier_window):
-
-    # Orders Top level
-    orders_page = tk.Toplevel(carrier_window)
-    orders_page.title("Orders")
-    orders_page.geometry("300x400")
-
-    # Orders Frame that is linked to orders_page top level
-    orders_frame = tk.Frame(orders_page, padx=1, pady=1)
-    orders_frame.pack(padx=10, pady=10)
-
-    sql_command = "SELECT * FROM orders"
-    mycursor.execute(sql_command)
-
-    orders = mycursor.fetchall()
-    for order in orders:
-        order_id, order_date, payment_method, customer_id, carrier_id = order
-
-        # Display order details in a Label
-        order_buttons = tk.Button(orders_frame, text=f"Order ID: {order_id}, Date: {order_date}, "
-                                                     f"Payment: {payment_method}, Customer: {customer_id}",
-                                  command=lambda: selected_orders(order, orders_frame, orders_page))
-        order_buttons.pack(pady=5, anchor=tk.W)
-
-
 # Carrier Main Page
 def carrier_page(login_carrier, email, password):
     # Authenticate the carrier
@@ -839,84 +810,102 @@ def carrier_page(login_carrier, email, password):
         mycursor.execute("SELECT carrierID FROM Carriers WHERE email = %s AND password = %s", (email, password))
         carrier_info = mycursor.fetchone()
 
-        if carrier_info:
-            carrier_id = carrier_info[0]
-        else:
-            # Handle the case where carrier information is not found
-            messagebox.showerror("Error", "Failed to retrieve carrier information.")
-            return
+        carrier_id = carrier_info[0]
 
+        # Initialize carrier_window
+        carrier_window = tk.Frame(root, padx=1, pady=1)
+        carrier_window.pack(padx=10, pady=10, fill=tk.BOTH, expand=True)
+
+        label = tk.Label(carrier_window, text="Welcome to the Carrier Main Page!")
+        label.pack(pady=20, side=tk.TOP)
+
+        # Function to handle the "Select Order" button click
+        def select_order(order_id):
+            # Get the selected order ID
+            if order_id:
+                # Update the order with the carrier's ID
+                mycursor.execute("UPDATE Orders SET carrierID = %s WHERE orderID = %s", (carrier_id, order_id))
+                mydb.commit()
+
+                # Inform the carrier about the successful selection
+                messagebox.showinfo("Order Selected", f"Order {order_id} has been assigned to you.")
+
+                # Update the UI by redisplaying the orders
+                display_orders()
+
+            else:
+                # Handle the case where no order ID is entered
+                messagebox.showerror("Error", "Please enter a valid Order ID.")
+
+        # Function to display available and assigned orders
         def display_orders():
             # Retrieve available orders from the database
             mycursor.execute("SELECT orderID, orderDate, paymentMethod FROM Orders WHERE carrierID IS NULL")
-            orders = mycursor.fetchall()
+            available_orders = mycursor.fetchall()
+
+            # Retrieve assigned orders for the current carrier
+            mycursor.execute("SELECT orderID, orderDate, paymentMethod FROM Orders WHERE carrierID = %s", (carrier_id,))
+            assigned_orders = mycursor.fetchall()
 
             # Destroy existing widgets in carrier_window
             for widget in carrier_window.winfo_children():
                 widget.destroy()
 
-            # Display the orders on the left side of the carrier_window
-            orders_frame = tk.Frame(carrier_window)
-            orders_frame.pack(side=tk.LEFT, padx=10)
+            # Display available orders on the left side of the carrier_window with a scrollbar
+            available_orders_frame = tk.Frame(carrier_window)
+            available_orders_frame.pack(side=tk.LEFT, padx=10, pady=10, fill=tk.BOTH, expand=True)
 
-            orders_label = tk.Label(orders_frame, text="Available Orders")
-            orders_label.pack(pady=10)
+            available_orders_label = tk.Label(available_orders_frame, text="Available Orders")
+            available_orders_label.pack(pady=10)
 
-            for order in orders:
-                order_id = order[0]
-                order_date = order[1]
-                payment_method = order[2]
+            available_orders_listbox = tk.Listbox(available_orders_frame, selectmode=tk.SINGLE)
+            available_orders_listbox.pack(side=tk.LEFT, pady=5, fill=tk.BOTH, expand=True)
 
-                order_text = f"Order ID: {order_id} - Date: {order_date} - Payment Method: {payment_method}"
-                order_label = tk.Label(orders_frame, text=order_text)
-                order_label.pack(pady=5)
+            available_orders_scrollbar = tk.Scrollbar(available_orders_frame, orient=tk.VERTICAL,
+                                                      command=available_orders_listbox.yview)
+            available_orders_scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+
+            available_orders_listbox.config(yscrollcommand=available_orders_scrollbar.set)
+
+            for order in available_orders:
+                order_text = f"Order ID: {order[0]} - Date: {order[1]} - Payment Method: {order[2]}"
+                available_orders_listbox.insert(tk.END, order_text)
+
+            # Display assigned orders in the middle of the carrier_window
+            assigned_orders_frame = tk.Frame(carrier_window)
+            assigned_orders_frame.pack(side=tk.LEFT, padx=10, pady=10, fill=tk.BOTH, expand=True)
+
+            assigned_orders_label = tk.Label(assigned_orders_frame, text="Assigned Orders")
+            assigned_orders_label.pack(pady=10)
+
+            assigned_orders_listbox = tk.Listbox(assigned_orders_frame, selectmode=tk.SINGLE)
+            assigned_orders_listbox.pack(pady=5, fill=tk.BOTH, expand=True)
+
+            for order in assigned_orders:
+                order_text = f"Order ID: {order[0]} - Date: {order[1]} - Payment Method: {order[2]}"
+                assigned_orders_listbox.insert(tk.END, order_text)
+
+            home_button = tk.Button(carrier_window, text="Home", command=lambda: go_to_home(carrier_window), width=20,
+                                    height=5)
+            home_button.pack(pady=20, padx=20, side=tk.BOTTOM)
+
+            # Display the entry widget for order ID
+            selected_order_label = tk.Label(carrier_window, text="Enter Order ID:")
+            selected_order_label.pack(side=tk.LEFT, padx=10, pady=10)
+
+            selected_order_entry = tk.Entry(carrier_window)
+            selected_order_entry.pack(side=tk.LEFT, padx=10, pady=10)
 
             # Display the "Select Order" button on the right side of the carrier_window
             select_order_button = tk.Button(carrier_window, text="Select Order",
-                                            command=lambda: select_order(selected_order_id.get()))
+                                            command=lambda: select_order(selected_order_entry.get()))
             select_order_button.pack(side=tk.RIGHT, padx=10, pady=10)
 
-            selected_order_id = tk.StringVar()
-            selected_order_entry = tk.Entry(carrier_window, textvariable=selected_order_id)
-            selected_order_entry.pack(side=tk.RIGHT, padx=10, pady=10)
-
-            selected_order_label = tk.Label(carrier_window, text="Enter Order ID:")
-            selected_order_label.pack(side=tk.RIGHT, padx=10, pady=10)
-
-            # Function to select an order and update the UI
-            def select_order(order_id):
-                if order_id:
-                    # Update the order with the carrier's ID
-                    mycursor.execute("UPDATE Orders SET carrierID = %s WHERE orderID = %s", (carrier_id, order_id))
-                    mydb.commit()
-
-                    # Inform the carrier about the successful selection
-                    messagebox.showinfo("Order Selected", f"Order {order_id} has been assigned to you.")
-
-                    # Update the UI by redisplaying the orders
-                    display_orders()
-
-                else:
-                    # Handle the case where no order ID is entered
-                    messagebox.showerror("Error", "Please enter a valid Order ID.")
-
-        # Initialize carrier_window
-        carrier_window = tk.Frame(root, padx=1, pady=1)
-        carrier_window.pack(padx=10, pady=10)
-
-        label = tk.Label(carrier_window, text="Welcome to the Carrier Main Page!")
-        label.pack(pady=20, side=tk.TOP)
-
-        # Display available orders and "Select Order" button
+        # Display available orders, assigned orders, and "Select Order" button
         display_orders()
-
-        home_button = tk.Button(carrier_window, text="Home", command=lambda: go_to_home(carrier_window))
-        home_button.pack(pady=20, padx=20, side=tk.BOTTOM)
 
     else:
         messagebox.showerror("Authentication Failed", "Incorrect email or password.")
-
-
 
 
 def carrier_action():
