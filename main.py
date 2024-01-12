@@ -333,15 +333,46 @@ def customer_page(login_customer, email, password):
 
         entrance_page.pack_forget()
 
-        customer_window = tk.Frame(root, padx=1, pady=1)
-        customer_window.pack(padx=10, pady=10)
+        customer_frame = tk.Frame(root, padx=10, pady=10, bg="red")
+        customer_frame.pack(padx=10, pady=10, expand=True, fill=tk.BOTH)
 
         # Add widgets to the main page
-        label = tk.Label(customer_window, text="Welcome to the Customer Main Page!")
-        label.pack(pady=20, side=tk.TOP)
+        #label = tk.Label(customer_frame, text="Welcome to the Customer Main Page!")
+        #label.pack(pady=20, side=tk.TOP)
 
-        home_button = tk.Button(customer_window, text="Home", command=lambda: go_to_home(customer_window))
-        home_button.pack(pady=20, padx=20, side=tk.BOTTOM)
+        home_button = tk.Button(customer_frame, text="Home", command=lambda: go_to_home(customer_frame))
+        home_button.pack(pady=20, padx=20, side=tk.TOP)
+
+        restaurants_list_frame = tk.Frame(customer_frame, padx=10, pady=10, bg="black", width=300, height=500)
+        restaurants_list_frame.pack(padx=20, pady=50, side=tk.LEFT)
+
+        # Scrollbar for the list of restaurants
+        scrollbar = tk.Scrollbar(restaurants_list_frame, orient=tk.VERTICAL)
+
+        # Listbox to display the restaurants
+        restaurants_listbox = tk.Listbox(restaurants_list_frame, yscrollcommand=scrollbar.set)
+        restaurants_listbox.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+
+        # Configure the scrollbar to work with the Listbox
+        scrollbar.config(command=restaurants_listbox.yview)
+        scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+
+        sql = "SELECT distinct restaurantName FROM Restaurants"
+        mycursor.execute(sql)
+
+        for name in mycursor.fetchall():
+            restaurants_listbox.insert(tk.END, name[0])
+
+
+
+        items_list_frame = tk.Frame(customer_frame, padx=10, pady=10, bg="blue", width=500, height=500)
+        items_list_frame.pack(padx=20, pady=100, side=tk.LEFT)
+
+        basket_list_frame = tk.Frame(customer_frame, padx=10, pady=10, bg="black", width=500, height=500)
+        basket_list_frame.pack(padx=20, pady=100, side=tk.LEFT)
+
+        customer_basket = []
+
 
     else:
         messagebox.showerror("Authentication Failed", "Incorrect email or password.")
@@ -518,7 +549,7 @@ def main():
     global entrance_page
 
     root = tk.Tk()
-    root.geometry("1300x800")
+    root.geometry("1300x600")
     root.title("Yemeksepeti")
 
     entrance_page = tk.Frame(root, padx=1, pady=1)
