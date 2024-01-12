@@ -517,8 +517,8 @@ def customer_login():
     register_label.pack(pady=10)
     register_button.pack(pady=10)
 
-
 def customer_page(login_customer, email, password):
+
     def show_selected_restaurant_items(event):
         # Clear the existing items in items_listbox
         items_listbox.delete(0, tk.END)
@@ -527,12 +527,33 @@ def customer_page(login_customer, email, password):
         selected_restaurant = str(restaurants_listbox.get(restaurants_listbox.curselection()))
 
         # Fetch items for the selected restaurant from the database
-        sql = f"SELECT Items.itemName FROM Items INNER JOIN Restaurants ON Items.restaurantID = Restaurants.restaurantID WHERE Restaurants.restaurantName = '{selected_restaurant}'"
+        sql = f"SELECT Items.itemName, Items.price, Items.foodType FROM Items INNER JOIN Restaurants ON Items.restaurantID = Restaurants.restaurantID WHERE Restaurants.restaurantName = '{selected_restaurant}'"
         mycursor.execute(sql)
 
         # Insert fetched items into the items_listbox
         for item in mycursor.fetchall():
-            items_listbox.insert(tk.END, item[0])
+            items_listbox.insert(tk.END, item)
+
+    customer_basket = []
+    def add_to_basket(event):  # WORK IN PROGRESS
+        selected_item = items_listbox.get(items_listbox.curselection())  # selected_item is a tuple
+
+        # Add the selected item to the basket
+        basket_listbox.insert(tk.END, selected_item)
+
+        # Calculate the total price in the basket
+        #total_price = sum(item[1] for item in basket_listbox.get(0, tk.END))
+        total_price = 0;
+
+        customer_basket = basket_listbox.get(0, tk.END)
+
+        for item in customer_basket:
+            total_price += item[1]
+
+
+        print("Total Price:", total_price)
+
+        show_selected_restaurant_items(event)
 
     if authenticate_customer(email, password):
 
@@ -540,7 +561,7 @@ def customer_page(login_customer, email, password):
 
         entrance_page.pack_forget()
 
-        customer_frame = tk.Frame(root, padx=10, pady=10, bg="red")
+        customer_frame = tk.Frame(root, padx=10, pady=10, bg="grey")
         customer_frame.pack(padx=10, pady=10, expand=True, fill=tk.BOTH)
 
         home_button = tk.Button(customer_frame, text="Home", command=lambda: go_to_home(customer_frame))
@@ -588,7 +609,12 @@ def customer_page(login_customer, email, password):
         items_listbox = tk.Listbox(items_list_frame)
         items_listbox.pack(fill=tk.BOTH, expand=True)
 
-        customer_basket = []
+        # Bind the add_to_basket function to the selection event
+        items_listbox.bind("<<ListboxSelect>>", add_to_basket)
+
+        # Listbox to display the basket
+        basket_listbox = tk.Listbox(basket_list_frame)
+        basket_listbox.pack(fill=tk.BOTH, expand=True)
 
 
     else:
