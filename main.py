@@ -158,6 +158,12 @@ def register_restaurant():
 
 
 # AFTER LOGIN, RUN THE RESTAURANT MAIN PAGE
+def go_to_restaurant_page(window_to_destroy):
+    # Destroy the current window and show the restaurant page
+    window_to_destroy.destroy()
+    restaurant_page(login_restaurant, email, password)
+
+
 def restaurant_page(login_restaurant, email, password):
     # Authenticate the restaurant
     if authenticate_restaurant(email, password):
@@ -166,6 +172,21 @@ def restaurant_page(login_restaurant, email, password):
 
         # Destroy entrance page, so you are into next page
         entrance_page.pack_forget()
+
+        def go_to_home(window_to_hide):
+            # Hide the current window and show the entrance page
+            window_to_hide.pack_forget()
+            entrance_page.pack()
+            root.update()  # Update the main GUI
+
+        def go_to_restaurant_page(window_to_destroy):
+            # Destroy the current window and show the restaurant page
+            window_to_destroy.destroy()
+            restaurant_page(login_restaurant, email, password)
+
+        def add_back_button(window):
+            back_button = tk.Button(window, text="Back", command=lambda: go_to_restaurant_page(window))
+            back_button.pack(pady=20, padx=20, side=tk.BOTTOM)
 
         def display_restaurant_menu():
             # Retrieve the restaurant information and menu from the database based on the logged-in restaurant's email and password
@@ -188,13 +209,20 @@ def restaurant_page(login_restaurant, email, password):
                 label = tk.Label(restaurant_window, text=f"Welcome to {restaurant_name}!\nRestaurant Menu:")
                 label.pack(pady=20, side=tk.TOP)
 
+                back_button = tk.Button(restaurant_window, text="Back",
+                                        command=lambda: go_to_restaurant_page(restaurant_window))
+                back_button.pack(pady=20, padx=20, side=tk.BOTTOM)
+
                 # Display the menu items
                 for item in menu_items:
                     item_label = tk.Label(restaurant_window, text=f"{item[1]} - ${item[2]:.2f} - {item[3]}")
                     item_label.pack(pady=5)
 
+
+
             home_button_restaurant = tk.Button(restaurant_window, text="Home", command=)
             home_button_restaurant.pack(pady=20)
+
 
         def display_daily_balance_sheet():
             # Get the restaurant information based on the logged-in restaurant's email and password
@@ -227,6 +255,11 @@ def restaurant_page(login_restaurant, email, password):
                                  text=f"Daily Balance Sheet for {current_date} - Restaurant: {restaurant_name}")
                 label.pack(pady=20, side=tk.TOP)
 
+                # Modify the Back button to go back to the restaurant page
+                back_button = tk.Button(restaurant_window, text="Back",
+                                        command=lambda: go_to_restaurant_page(restaurant_window))
+                back_button.pack(pady=20, padx=20, side=tk.BOTTOM)
+
                 # Display order details
                 total_revenue = 0.0
                 total_quantity = 0
@@ -252,7 +285,8 @@ def restaurant_page(login_restaurant, email, password):
                         total_profit += profit
 
                         order_label = tk.Label(restaurant_window,
-                                               text=f"{item_name} - Quantity: {quantity} - Revenue: ${revenue:.2f} - Profit: ${profit:.2f}")
+                                               text=f"{item_name} - Quantity: {quantity} - Revenue: ${revenue:.2f} - "
+                                                    f"Profit: ${profit:.2f}")
                         order_label.pack(pady=5)
 
                 # Display total revenue, total quantity, and total profit
@@ -286,6 +320,7 @@ def restaurant_page(login_restaurant, email, password):
                                    command=lambda: add_item_to_menu(item_name_entry.get(), price_entry.get(),
                                                                     food_type_entry.get(), add_item_window))
 
+
             item_name_label.pack(pady=10)
             item_name_entry.pack(pady=5)
 
@@ -296,6 +331,8 @@ def restaurant_page(login_restaurant, email, password):
             food_type_entry.pack(pady=5)
 
             add_button.pack(pady=20)
+
+
 
         def delete_item():
             delete_item_window = tk.Toplevel(root)
@@ -369,7 +406,7 @@ def restaurant_page(login_restaurant, email, password):
         delete_item_button.pack(pady=10)
 
         home_button = tk.Button(restaurant_window, text="Home", command=lambda: go_to_home(restaurant_window))
-        home_button.pack(pady=20, padx=20, side=tk.BOTTOM)
+        home_button.pack(pady=20, padx=20, side=tk.TOP)
 
 
     else:
