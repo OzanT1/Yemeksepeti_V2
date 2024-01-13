@@ -552,17 +552,30 @@ def customer_login():
     register_label.pack(pady=10)
     register_button.pack(pady=10)
 
+def make_review_button_pressed(customer_id: int) -> None:
+    pass
+
+def display_reviews_event(item_id: int) -> None:
+    pass
+    window = tk.Toplevel()
+    page = tk.Frame(window)
+    page.pack(fill=tk.BOTH, expand=1, side=tk.LEFT)
+
+
+
+
 def customer_page(login_customer, email, password):
+    restaurants = []  # Has tuples of (id, name)
 
     def show_selected_restaurant_items(event):
         # Clear the existing items in items_listbox
         items_listbox.delete(0, tk.END)
 
         # Get the selected restaurant
-        selected_restaurant = str(restaurants_listbox.get(restaurants_listbox.curselection()))
+        selected_restaurant_id = int(restaurants_listbox.get(restaurants_listbox.curselection())[0])
 
         # Fetch items for the selected restaurant from the database
-        sql = f"SELECT Items.itemName, Items.price, Items.foodType FROM Items INNER JOIN Restaurants ON Items.restaurantID = Restaurants.restaurantID WHERE Restaurants.restaurantName = '{selected_restaurant}'"
+        sql = f"SELECT Items.itemID, Items.itemName, Items.price, Items.foodType FROM Items INNER JOIN Restaurants ON Items.restaurantID = Restaurants.restaurantID WHERE Restaurants.restaurantID = {selected_restaurant_id}"
         mycursor.execute(sql)
 
         # Insert fetched items into the items_listbox
@@ -571,24 +584,23 @@ def customer_page(login_customer, email, password):
 
     customer_basket = []
     def add_to_basket(event):  # WORK IN PROGRESS
-        selected_item = items_listbox.get(items_listbox.curselection())  # selected_item is a tuple
+        selected_item = items_listbox.get(items_listbox.curselection())
 
         # Add the selected item to the basket
         basket_listbox.insert(tk.END, selected_item)
 
         # Calculate the total price in the basket
-        #total_price = sum(item[1] for item in basket_listbox.get(0, tk.END))
-        total_price = 0;
+        total_price = 0.0
 
-        customer_basket = basket_listbox.get(0, tk.END)
+        # Check the structure of the tuples in basket_listbox
+        basket_content = basket_listbox.get(0, tk.END)
+        for item in basket_content:
+            price_index = 2
+            total_price += float(item[price_index])
 
-        for item in customer_basket:
-            total_price = total_price + item[1]
+        print("Total Price: ", total_price)
+        total_price_label.config(text=f"Total Price: ${total_price}")
 
-
-        print("Total Price:", total_price)
-
-        show_selected_restaurant_items(event)
 
     if authenticate_customer(email, password):
 
@@ -616,14 +628,12 @@ def customer_page(login_customer, email, password):
         scrollbar.config(command=restaurants_listbox.yview)
         scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
 
-        sql = "SELECT restaurantName FROM Restaurants"
+        sql = "SELECT restaurantID, restaurantName FROM Restaurants"
         mycursor.execute(sql)
-
-        restaurants = []
 
         # Get from database
         for name in mycursor.fetchall():
-            restaurants.append(name[0])
+            restaurants.append(name)
 
         # Insert restaurants into the Listbox
         for restaurant in restaurants:
@@ -635,7 +645,16 @@ def customer_page(login_customer, email, password):
         items_list_frame = tk.Frame(customer_frame, padx=10, pady=10, bg="blue")
         items_list_frame.pack(padx=10, pady=10, side=tk.LEFT, fill=tk.BOTH, expand=1)
 
-        basket_list_frame = tk.Frame(customer_frame, padx=10, pady=10, bg="black")
+        # Get customerID
+        sql_cmd = f"select customerID from Customers where email = '{str(email)}' and password = '{str(password)}'"
+        mycursor.execute(sql_cmd)
+
+        customer_id = int(mycursor.fetchone()[0])
+
+        make_review_button = tk.Button(items_list_frame, text="Make a review", command= lambda:make_review_button_pressed(customer_id))
+        make_review_button.pack()
+
+        basket_list_frame = tk.Frame(customer_frame, padx=10, pady=10)
         basket_list_frame.pack(padx=10, pady=10, side=tk.LEFT, fill=tk.BOTH, expand=1)
 
         # Listbox to display the items
@@ -647,7 +666,15 @@ def customer_page(login_customer, email, password):
 
         # Listbox to display the basket
         basket_listbox = tk.Listbox(basket_list_frame)
-        basket_listbox.pack(fill=tk.BOTH, expand=True)
+        basket_listbox.pack(fill=tk.BOTH, expand=True, side=tk.TOP)
+
+        total_price_label = tk.Label(basket_list_frame, text="Total Price: $0")
+        total_price_label.pack()
+
+        end_purchase_button = tk.Button(basket_list_frame, text="End Purchase")
+        end_purchase_button.pack(side=tk.TOP)
+
+
 
 
     else:
