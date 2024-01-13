@@ -583,7 +583,7 @@ def customer_page(login_customer, email, password):
         customer_basket = basket_listbox.get(0, tk.END)
 
         for item in customer_basket:
-            total_price += item[1]
+            total_price = total_price + item[1]
 
 
         print("Total Price:", total_price)
@@ -816,7 +816,10 @@ def carrier_page(login_carrier, email, password):
         # Function to handle the "Select Order" button click
         def select_order(order_id):
             # Get the selected order ID
-            if order_id:
+            mycursor.execute("SELECT COUNT(orderID) FROM Orders WHERE carrierID IS NULL AND orderID = %s", (order_id,))
+            my_tuple = mycursor.fetchone()
+
+            if my_tuple[0] != 0:
                 # Update the order with the carrier's ID
                 mycursor.execute("UPDATE Orders SET carrierID = %s WHERE orderID = %s", (carrier_id, order_id))
                 mydb.commit()
