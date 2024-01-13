@@ -552,14 +552,107 @@ def customer_login():
     register_label.pack(pady=10)
     register_button.pack(pady=10)
 
-def make_review_button_pressed(customer_id: int) -> None:
-    pass
 
-def display_reviews_event(item_id: int) -> None:
-    pass
-    window = tk.Toplevel()
-    page = tk.Frame(window)
-    page.pack(fill=tk.BOTH, expand=1, side=tk.LEFT)
+def submit_review(item_name, customer_id, review_text, rating, review_window):
+    # Retrieve the item ID based on the item name
+    sql_cmd_get_item_id = "SELECT itemID FROM Items WHERE itemName = %s"
+    mycursor.execute(sql_cmd_get_item_id, (item_name,))
+    item_id = mycursor.fetchone()
+
+    if item_id:
+        item_id = item_id[0]
+        # Insert the review into the Reviews table
+        # Assuming you have already defined item_id, customer_id, review_text, and rating
+        sql_cmd_insert_review = "INSERT INTO Reviews (itemID, customerID, reviewText, rating, date) VALUES (%s, %s, %s, %s, curdate())"
+        mycursor.execute(sql_cmd_insert_review, (item_id, customer_id, review_text, rating))
+        mydb.commit()
+
+        messagebox.showinfo("Review Submitted", "Your review has been submitted successfully.")
+        review_window.destroy()  # Close the review window upon submission
+    else:
+        messagebox.showerror("Error", "Item ID not found.")
+
+
+# Function that works for opening a new window for writing a review text
+def open_review_text_window(frame, item_name, customer_id):
+
+    review_frame = tk.Frame(frame)
+    review_frame.pack(padx=10, pady=10, expand=True, fill=tk.BOTH)
+
+    # Label for item name
+    item_name_label = tk.Label(review_frame, text=f"Review for {item_name}:")
+    item_name_label.pack(pady=10)
+
+    # Entry widget for the review text
+    review_text_entry = tk.Entry(review_frame, width=30)
+    review_text_entry.pack(pady=5)
+
+    # Rating scale
+    rating_label = tk.Label(review_frame, text="Rating:")
+    rating_scale = tk.Scale(review_frame, from_=0, to=5, orient=tk.HORIZONTAL)
+    rating_label.pack(pady=5)
+    rating_scale.pack(pady=5)
+
+    # Button to submit the review
+    submit_button = tk.Button(review_frame, text="Submit Review", command=lambda: submit_review(item_name, customer_id,
+                                                                                                review_text_entry.get(),
+                                                                                                rating_scale.get(),
+                                                                                                review_frame))
+    submit_button.pack(pady=10)
+
+
+# Function that works for selecting the order
+def show_selected_ordered_items(frame, ordered_items_listbox, customer_id):
+    # Get the selected item from the Listbox
+    selected_item_index = ordered_items_listbox.curselection()
+
+    if selected_item_index:
+        selected_item = ordered_items_listbox.get(selected_item_index)
+        print(f"Selected Item: {selected_item}")
+
+        # Open a new window for writing a review
+        open_review_text_window(frame, selected_item, customer_id)
+
+    else:
+        messagebox.showwarning("No Selection", "Please select an item.")
+
+
+# Function to display ordered items
+def display_ordered_items(frame, items, customer_id):
+    # Clear any existing widgets in the frame
+    for widget in frame.winfo_children():
+        widget.destroy()
+
+    # Create a Listbox to display items
+    ordered_items_listbox = tk.Listbox(frame, selectmode=tk.SINGLE)
+    ordered_items_listbox.pack(expand=True, fill=tk.BOTH)
+
+    # Populate the Listbox with items
+    for item in items:
+        ordered_items_listbox.insert(tk.END, item[0])
+
+        # Bind the show_selected_ordered_items function to the selection event (Double Click)
+        ordered_items_listbox.bind("<<ListboxSelect>>",
+                                   lambda event: show_selected_ordered_items(frame, ordered_items_listbox, customer_id))
+
+
+# Customer can make a review for each item also for each restaurant
+def make_review_button_pressed(customer_id: int) -> None:
+    review_window = tk.Toplevel(root)
+    review_window.title("Review Page")
+    review_window.geometry("500x500")
+
+    make_review_frame = tk.Frame(review_window)
+    make_review_frame.pack(padx=10, pady=10, expand=True, fill=tk.BOTH)
+
+    # Reach the customer's orders item "Name"
+    sql_cmd = "SELECT DISTINCT OrderDetails.itemID, Items.itemName FROM Orders, OrderDetails, Items WHERE Orders.orderID = OrderDetails.orderID  AND OrderDetails.itemID = Items.itemID AND customerID = %s"
+    mycursor.execute(sql_cmd, (customer_id,))
+    items_name = mycursor.fetchall()
+
+    if items_name:
+        # Display ordered items for that customer
+        display_ordered_items(make_review_frame, items_name, customer_id)
 
 
 
