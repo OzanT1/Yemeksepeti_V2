@@ -599,8 +599,8 @@ def customer_page(login_customer, email, password):
             total_price += float(item[price_index])
 
         print("Total Price: ", total_price)
+        total_price_label.config(text=f"Total Price: ${total_price}")
 
-        #show_selected_restaurant_items()
 
     if authenticate_customer(email, password):
 
@@ -645,7 +645,16 @@ def customer_page(login_customer, email, password):
         items_list_frame = tk.Frame(customer_frame, padx=10, pady=10, bg="blue")
         items_list_frame.pack(padx=10, pady=10, side=tk.LEFT, fill=tk.BOTH, expand=1)
 
-        basket_list_frame = tk.Frame(customer_frame, padx=10, pady=10, bg="black")
+        # Get customerID
+        sql_cmd = f"select customerID from Customers where email = '{str(email)}' and password = '{str(password)}'"
+        mycursor.execute(sql_cmd)
+
+        customer_id = int(mycursor.fetchone()[0])
+
+        make_review_button = tk.Button(items_list_frame, text="Make a review", command= lambda:make_review_button_pressed(customer_id))
+        make_review_button.pack()
+
+        basket_list_frame = tk.Frame(customer_frame, padx=10, pady=10)
         basket_list_frame.pack(padx=10, pady=10, side=tk.LEFT, fill=tk.BOTH, expand=1)
 
         # Listbox to display the items
@@ -657,9 +666,15 @@ def customer_page(login_customer, email, password):
 
         # Listbox to display the basket
         basket_listbox = tk.Listbox(basket_list_frame)
-        basket_listbox.pack(fill=tk.BOTH, expand=True)
+        basket_listbox.pack(fill=tk.BOTH, expand=True, side=tk.TOP)
 
-        #end_purchase_button = tk.Button(customer_basket)
+        total_price_label = tk.Label(basket_list_frame, text="Total Price: $0")
+        total_price_label.pack()
+
+        end_purchase_button = tk.Button(basket_list_frame, text="End Purchase")
+        end_purchase_button.pack(side=tk.TOP)
+
+
 
 
     else:
