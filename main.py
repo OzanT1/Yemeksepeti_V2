@@ -314,7 +314,6 @@ def restaurant_page(login_restaurant, email, password):
                                    command=lambda: add_item_to_menu(item_name_entry.get(), price_entry.get(),
                                                                     food_type_entry.get(), add_item_window))
 
-
             item_name_label.pack(pady=10)
             item_name_entry.pack(pady=5)
 
@@ -325,8 +324,6 @@ def restaurant_page(login_restaurant, email, password):
             food_type_entry.pack(pady=5)
 
             add_button.pack(pady=20)
-
-
 
         def delete_item():
             delete_item_window = tk.Toplevel(root)
@@ -575,7 +572,6 @@ def submit_review(item_name, customer_id, review_text, rating, review_window):
 
 # Function that works for opening a new window for writing a review text
 def open_review_text_window(frame, item_name, customer_id):
-
     review_frame = tk.Frame(frame)
     review_frame.pack(padx=10, pady=10, expand=True, fill=tk.BOTH)
 
@@ -602,7 +598,11 @@ def open_review_text_window(frame, item_name, customer_id):
 
 
 # Function that works for selecting the order
+last_selected_item = None  # Variable to store the last selected item
+
 def show_selected_ordered_items(frame, ordered_items_listbox, customer_id):
+    global last_selected_item
+
     # Get the selected item from the Listbox
     selected_item_index = ordered_items_listbox.curselection()
 
@@ -610,8 +610,13 @@ def show_selected_ordered_items(frame, ordered_items_listbox, customer_id):
         selected_item = ordered_items_listbox.get(selected_item_index)
         print(f"Selected Item: {selected_item}")
 
-        # Open a new window for writing a review
-        open_review_text_window(frame, selected_item, customer_id)
+        # Check if the selected item is different from the last one
+        if selected_item != last_selected_item:
+
+            # Open a new window for writing a review
+            open_review_text_window(frame, selected_item, customer_id)
+
+            last_selected_item = selected_item  # Update the last selected item
 
     else:
         messagebox.showwarning("No Selection", "Please select an item.")
@@ -629,9 +634,9 @@ def display_ordered_items(frame, items, customer_id):
 
     # Populate the Listbox with items
     for item in items:
-        ordered_items_listbox.insert(tk.END, item[0])
+        ordered_items_listbox.insert(tk.END, item)
 
-        # Bind the show_selected_ordered_items function to the selection event (Double Click)
+        # Bind the show_selected_ordered_items function to the selection event
         ordered_items_listbox.bind("<<ListboxSelect>>",
                                    lambda event: show_selected_ordered_items(frame, ordered_items_listbox, customer_id))
 
@@ -648,13 +653,17 @@ def make_review_button_pressed(customer_id: int) -> None:
     # Reach the customer's orders item "Name"
     sql_cmd = "SELECT DISTINCT OrderDetails.itemID, Items.itemName FROM Orders, OrderDetails, Items WHERE Orders.orderID = OrderDetails.orderID  AND OrderDetails.itemID = Items.itemID AND customerID = %s"
     mycursor.execute(sql_cmd, (customer_id,))
-    items_name = mycursor.fetchall()
+    items_data = mycursor.fetchall()
 
-    if items_name:
+    if items_data:
+        # Extract item names from the result
+        items_names = [item[1] for item in items_data]
+
         # Display ordered items for that customer
-        display_ordered_items(make_review_frame, items_name, customer_id)
-
-
+        display_ordered_items(make_review_frame, items_names, customer_id)
+    else:
+        # Handle the case where there are no ordered items for the customer
+        tk.Label(make_review_frame, text="No ordered items found for this customer.").pack()
 
 
 def customer_page(login_customer, email, password):
@@ -676,6 +685,7 @@ def customer_page(login_customer, email, password):
             items_listbox.insert(tk.END, item)
 
     customer_basket = []
+
     def add_to_basket(event):  # WORK IN PROGRESS
         selected_item = items_listbox.get(items_listbox.curselection())
 
@@ -768,7 +778,8 @@ def customer_page(login_customer, email, password):
 
         customer_id = int(mycursor.fetchone()[0])
 
-        make_review_button = tk.Button(items_list_frame, text="Make a review", command= lambda:make_review_button_pressed(customer_id))
+        make_review_button = tk.Button(items_list_frame, text="Make a review",
+                                       command=lambda: make_review_button_pressed(customer_id))
         make_review_button.pack()
 
         basket_list_frame = tk.Frame(customer_frame, padx=10, pady=10)
