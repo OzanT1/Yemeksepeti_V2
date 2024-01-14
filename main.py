@@ -1,6 +1,5 @@
 import datetime
 from tkinter import messagebox, ttk
-
 import mysql.connector
 import tkinter as tk
 import configparser
@@ -271,30 +270,22 @@ def restaurant_page(login_restaurant, email, password):
                     restaurant_id = restaurant_info[0]
                     restaurant_name = restaurant_info[1]
 
-                    # Get the current date
-                    current_date = datetime.datetime.now().date()
-
                     # Retrieve order details for the current date and specific restaurant
                     mycursor.execute("SELECT i.itemName, od.quantity, i.price "
                                      "FROM OrderDetails od "
                                      "INNER JOIN Orders o ON od.orderID = o.orderID "
                                      "INNER JOIN Items i ON od.itemID = i.itemID "
-                                     "WHERE o.orderDate = %s AND o.customerID IS NULL AND i.restaurantID = %s",
-                                     (current_date, restaurant_id))
+                                     "WHERE DATE(o.orderDate) = CURRENT_DATE() AND i.restaurantID = %s",
+                                     (restaurant_id,))
                     order_details = mycursor.fetchall()
-
-                    # Print order details for debugging
-                    print("Order Details:")
-                    for order_detail in order_details:
-                        print(order_detail)
-
+                    print(order_details)
                     # Destroy existing widgets in restaurant_window
                     for widget in restaurant_window.winfo_children():
                         widget.destroy()
 
                     # Display the daily balance sheet
                     label = tk.Label(restaurant_window,
-                                     text=f"Daily Balance Sheet for {current_date} - Restaurant: {restaurant_name}")
+                                     text=f"Daily Balance Sheet for {restaurant_name} - Restaurant: {restaurant_name}")
                     label.pack(pady=20, side=tk.TOP)
 
                     # Modify the Back button to go back to the restaurant page
@@ -302,34 +293,30 @@ def restaurant_page(login_restaurant, email, password):
                                             command=lambda: go_to_restaurant_page(restaurant_window))
                     back_button.pack(pady=20, padx=20, side=tk.BOTTOM)
 
-                    # Display order details
                     total_revenue = 0.0
                     total_quantity = 0
 
                     for order_detail in order_details:
-                        item_name = order_detail[0]
-                        quantity = order_detail[1]
-                        item_price = order_detail[2]
+                        item_name = order_detail[0]  # Access the item name at index 0
+                        quantity = order_detail[1]  # Access the quantity at index 1
+                        item_price = float(
+                            order_detail[2])  # Convert Decimal to float and access the item price at index 2
                         revenue = quantity * item_price
 
-                        total_revenue += revenue
+                        total_revenue += float(revenue)  # Convert Decimal to float before adding
                         total_quantity += quantity
 
                         order_label = tk.Label(restaurant_window,
-                                               text=f"{item_name} - Quantity: {quantity} - Revenue: ${revenue:.2f}")
+                                               text=f"{item_name} - Quantity: {quantity} - Revenue: ${float(revenue):.2f}")
                         order_label.pack(pady=5)
 
-                    # Print total revenue and total quantity for debugging
-                    print(f"Total Revenue: {total_revenue}")
-                    print(f"Total Quantity Sold: {total_quantity}")
-
                     # Display total revenue and total quantity
-                    total_revenue_label = tk.Label(restaurant_window, text=f"Total Revenue: ${total_revenue:.2f}")
+                    total_revenue_label = tk.Label(restaurant_window,
+                                                   text=f"Total Revenue: ${float(total_revenue):.2f}")
                     total_revenue_label.pack(pady=5)
 
                     total_quantity_label = tk.Label(restaurant_window, text=f"Total Quantity Sold: {total_quantity}")
                     total_quantity_label.pack(pady=5)
-
                 else:
                     messagebox.showerror("Error", "Failed to retrieve restaurant information.")
 
