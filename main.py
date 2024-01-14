@@ -1096,13 +1096,29 @@ def carrier_page(login_carrier, email, password):
                 messagebox.showerror("Error", "Please enter a valid Order ID.")
 
         # Function to display available and assigned orders
+        # ...
+
+        # ...
+
         def display_orders():
-            # Retrieve available orders from the database
-            mycursor.execute("SELECT orderID, orderDate, paymentMethod FROM Orders WHERE carrierID IS NULL")
+            # Retrieve available orders with address and restaurant name from the database
+            mycursor.execute("SELECT o.orderID, o.orderDate, o.paymentMethod, c.address, r.restaurantName "
+                             "FROM Orders o "
+                             "JOIN Customers c ON o.customerID = c.customerID "
+                             "JOIN OrderDetails od ON o.orderID = od.orderID "
+                             "JOIN Items i ON od.itemID = i.itemID "
+                             "JOIN Restaurants r ON i.restaurantID = r.restaurantID "
+                             "WHERE o.carrierID IS NULL")
             available_orders = mycursor.fetchall()
 
-            # Retrieve assigned orders for the current carrier
-            mycursor.execute("SELECT orderID, orderDate, paymentMethod FROM Orders WHERE carrierID = %s", (carrier_id,))
+            # Retrieve assigned orders for the current carrier with address and restaurant name
+            mycursor.execute("SELECT o.orderID, o.orderDate, o.paymentMethod, c.address, r.restaurantName "
+                             "FROM Orders o "
+                             "JOIN Customers c ON o.customerID = c.customerID "
+                             "JOIN OrderDetails od ON o.orderID = od.orderID "
+                             "JOIN Items i ON od.itemID = i.itemID "
+                             "JOIN Restaurants r ON i.restaurantID = r.restaurantID "
+                             "WHERE o.carrierID = %s", (carrier_id,))
             assigned_orders = mycursor.fetchall()
 
             # Destroy existing widgets in carrier_window
@@ -1126,7 +1142,7 @@ def carrier_page(login_carrier, email, password):
             available_orders_listbox.config(yscrollcommand=available_orders_scrollbar.set)
 
             for order in available_orders:
-                order_text = f"Order ID: {order[0]} - Date: {order[1]} - Payment Method: {order[2]}"
+                order_text = f"Order ID: {order[0]} - Date: {order[1]} - Payment Method: {order[2]} - Address: {order[3]}"
                 available_orders_listbox.insert(tk.END, order_text)
 
             # Display assigned orders in the middle of the carrier_window
@@ -1140,7 +1156,7 @@ def carrier_page(login_carrier, email, password):
             assigned_orders_listbox.pack(pady=5, fill=tk.BOTH, expand=True)
 
             for order in assigned_orders:
-                order_text = f"Order ID: {order[0]} - Date: {order[1]} - Payment Method: {order[2]}"
+                order_text = f"Order ID: {order[0]} - Date: {order[1]} - Payment Method: {order[2]} - Address: {order[3]}"
                 assigned_orders_listbox.insert(tk.END, order_text)
 
             home_button = tk.Button(carrier_window, text="Home", command=lambda: go_to_home(carrier_window), width=20,
@@ -1158,6 +1174,10 @@ def carrier_page(login_carrier, email, password):
             select_order_button = tk.Button(carrier_window, text="Select Order",
                                             command=lambda: select_order(selected_order_entry.get()))
             select_order_button.pack(side=tk.RIGHT, padx=10, pady=10)
+
+        # ...
+
+        # ...
 
         # Display available orders, assigned orders, and "Select Order" button
         display_orders()
