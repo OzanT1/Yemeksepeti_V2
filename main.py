@@ -599,14 +599,14 @@ def customer_login():
     register_button.pack(pady=10)
 
 
-def submit_review(item_name, customer_id, review_text, rating, review_window):
+def submit_review(items, customer_id, review_text, rating, review_window):
     # Retrieve the item ID based on the item name
-    sql_cmd_get_item_id = "SELECT itemID FROM Items WHERE itemName = %s"
-    mycursor.execute(sql_cmd_get_item_id, (item_name,))
-    item_id = mycursor.fetchone()
+    sql_cmd_get_item_id = "SELECT itemID, itemName FROM Items WHERE itemID = %s"
+    mycursor.execute(sql_cmd_get_item_id, (items[0],))
+    item = mycursor.fetchone()
 
-    if item_id:
-        item_id = item_id[0]
+    if item:
+        item_id = item[0]
         # Insert the review into the Reviews table
         # Assuming you have already defined item_id, customer_id, review_text, and rating
         sql_cmd_insert_review = "INSERT INTO Reviews (itemID, customerID, reviewText, rating, date) VALUES (%s, %s, %s, %s, curdate())"
@@ -620,12 +620,12 @@ def submit_review(item_name, customer_id, review_text, rating, review_window):
 
 
 # Function that works for opening a new window for writing a review text
-def open_review_text_window(frame, item_name, customer_id):
+def open_review_text_window(frame, items, customer_id):
     review_frame = tk.Frame(frame)
     review_frame.pack(padx=10, pady=10, expand=True, fill=tk.BOTH)
 
     # Label for item name
-    item_name_label = tk.Label(review_frame, text=f"Review for {item_name}:")
+    item_name_label = tk.Label(review_frame, text=f"Review for {items}:")
     item_name_label.pack(pady=10)
 
     # Entry widget for the review text
@@ -639,7 +639,7 @@ def open_review_text_window(frame, item_name, customer_id):
     rating_scale.pack(pady=5)
 
     # Button to submit the review
-    submit_button = tk.Button(review_frame, text="Submit Review", command=lambda: submit_review(item_name, customer_id,
+    submit_button = tk.Button(review_frame, text="Submit Review", command=lambda: submit_review(items, customer_id,
                                                                                                 review_text_entry.get(),
                                                                                                 rating_scale.get(),
                                                                                                 review_frame))
@@ -706,10 +706,10 @@ def make_review_button_pressed(customer_id: int) -> None:
 
     if items_data:
         # Extract item names from the result
-        items_names = [item[1] for item in items_data]
+        items = [item for item in items_data]
 
         # Display ordered items for that customer
-        display_ordered_items(make_review_frame, items_names, customer_id)
+        display_ordered_items(make_review_frame, items, customer_id)
     else:
         # Handle the case where there are no ordered items for the customer
         tk.Label(make_review_frame, text="No ordered items found for this customer.").pack()
