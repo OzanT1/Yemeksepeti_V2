@@ -446,7 +446,7 @@ def restaurant_page(login_restaurant, email, password):
 
 
         home_button = tk.Button(restaurant_window, text="Home", command=lambda: go_to_home(restaurant_window))
-        home_button.pack(pady=20, padx=20, side=tk.TOP)
+        home_button.pack(pady=15, padx=15, side=tk.TOP)
 
 
     else:
