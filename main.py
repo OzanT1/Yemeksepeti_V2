@@ -748,7 +748,11 @@ def display_reviews_item(frame, datas):
         separator.pack(fill=tk.X, padx=5, pady=5)
 
 
-def display_reviews_customer(item_id: int) -> None:
+def display_reviews_customer(basket_listbox) -> None:
+
+    selected_item = basket_listbox.get(basket_listbox.curselection())
+    item_id = selected_item[0]
+
     display_reviews_window = tk.Toplevel(root)
     display_reviews_window.title("Reviews")
     display_reviews_window.geometry("700x700")
@@ -756,7 +760,7 @@ def display_reviews_customer(item_id: int) -> None:
     display_reviews_frame = tk.Frame(display_reviews_window)
     display_reviews_frame.pack(padx=10, pady=10, expand=True, fill=tk.BOTH)
 
-    sql_cmd = "SELECT items.itemID, customers.firstName, customers.lastName, reviews.reviewText, reviews.date, reviews.rating FROM items INNER JOIN reviews ON items.itemID = reviews.itemID INNER JOIN Customers ON reviews.customerID = Customers.customerID WHERE itemID= %s"
+    sql_cmd = "SELECT items.itemID, customers.firstName, customers.lastName, reviews.reviewText, reviews.date, reviews.rating FROM items INNER JOIN reviews ON items.itemID = reviews.itemID INNER JOIN Customers ON reviews.customerID = Customers.customerID WHERE Items.itemID= %s"
     mycursor.execute(sql_cmd, (item_id,))
     reviews_data = mycursor.fetchall()
 
@@ -888,7 +892,9 @@ def customer_page(login_customer, email, password):
         basket_list_frame = tk.Frame(customer_frame, padx=10, pady=10)
         basket_list_frame.pack(padx=10, pady=10, side=tk.LEFT, fill=tk.BOTH, expand=1)
 
-        display_reviews_button = tk.Button(basket_list_frame, text="Display Reviews")  # command will be entered.
+
+
+        display_reviews_button = tk.Button(basket_list_frame, text="Display Reviews", command=lambda:display_reviews_customer(basket_listbox))  # command will be entered.
         display_reviews_button.pack()
 
         # Listbox to display the items
