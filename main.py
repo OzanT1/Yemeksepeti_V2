@@ -271,14 +271,14 @@ def restaurant_page(login_restaurant, email, password):
                     restaurant_name = restaurant_info[1]
 
                     # Retrieve order details for the current date and specific restaurant
-                    mycursor.execute("SELECT i.itemName, od.quantity, i.price "
-                                     "FROM OrderDetails od "
-                                     "INNER JOIN Orders o ON od.orderID = o.orderID "
-                                     "INNER JOIN Items i ON od.itemID = i.itemID "
-                                     "WHERE DATE(o.orderDate) = CURRENT_DATE() AND i.restaurantID = %s",
-                                     (restaurant_id,))
+                    sql_query = "SELECT i.itemName, od.quantity, i.price " \
+                                "FROM OrderDetails od " \
+                                "INNER JOIN Orders o ON od.orderID = o.orderID " \
+                                "INNER JOIN Items i ON od.itemID = i.itemID " \
+                                "WHERE DATE(o.orderDate) = CURRENT_DATE() AND i.restaurantID = %s"
+                    print("SQL Query:", sql_query)
+                    mycursor.execute(sql_query, (restaurant_id,))
                     order_details = mycursor.fetchall()
-                    print(order_details)
                     # Destroy existing widgets in restaurant_window
                     for widget in restaurant_window.winfo_children():
                         widget.destroy()
