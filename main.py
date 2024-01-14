@@ -1,3 +1,4 @@
+import collections
 import datetime
 from tkinter import messagebox, ttk
 
@@ -815,20 +816,31 @@ def customer_page(login_customer, email, password):
         selected_items = basket_listbox.get(0, tk.END)
 
         # Inserting order to the database
-        sql_cmd = "insert into Orders(orderDate, paymentMethod, customerID) values(CURRENT_DATE(), %s, %s)"
-        mycursor.execute(sql_cmd, (selected_payment_option, customer_id))
+        sql_cmd_orders = "INSERT INTO Orders(orderDate, paymentMethod, customerID) VALUES (CURRENT_DATE(), %s, %s)"
+        mycursor.execute(sql_cmd_orders, (selected_payment_option, customer_id))
         mydb.commit()
+
+        # Retrieve the orderID of the newly inserted order
+        order_id = mycursor.lastrowid
+
+        # Count occurrences of each item in selected_items
+        item_counter = collections.Counter(selected_items)
+
+        # Filling OrderDetails
+        for item, quantity in item_counter.items():
+            item_id, item_name, price, food_type = item[0], item[1], item[2], item[3]
+
+            # Inserting records into OrderDetails
+            sql_cmd_order_details = "INSERT INTO OrderDetails(orderID, itemID, quantity) VALUES (%s, %s, %s)"
+            mycursor.execute(sql_cmd_order_details, (order_id, item_id, quantity))
+            mydb.commit()
 
         messagebox.showinfo(title="Payment Info", message="Order completed")
 
-        # Filling OrderDetails
-
-
-
         print(f"Selected Payment Option: {selected_payment_option}")
         print("Items in the Basket:")
-        for item in selected_items:
-            print(item)
+        for item, quantity in item_counter.items():
+            print(f"{item[1]} (Quantity: {quantity})")
 
     if authenticate_customer(email, password):
 
