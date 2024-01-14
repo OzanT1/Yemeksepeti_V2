@@ -271,16 +271,15 @@ def restaurant_page(login_restaurant, email, password):
                     restaurant_id = restaurant_info[0]
                     restaurant_name = restaurant_info[1]
 
-                    # Get the current date
-                    current_date = datetime.datetime.now().date()
+                    
 
                     # Retrieve order details for the current date and specific restaurant
                     mycursor.execute("SELECT i.itemName, od.quantity, i.price "
                                      "FROM OrderDetails od "
                                      "INNER JOIN Orders o ON od.orderID = o.orderID "
                                      "INNER JOIN Items i ON od.itemID = i.itemID "
-                                     "WHERE o.orderDate = %s AND o.customerID IS NULL AND i.restaurantID = %s",
-                                     (current_date, restaurant_id))
+                                     "WHERE o.orderDate = curDate() AND o.customerID IS NULL AND i.restaurantID = %s",
+                                     (restaurant_id,))
                     order_details = mycursor.fetchall()
 
                     # Print order details for debugging
