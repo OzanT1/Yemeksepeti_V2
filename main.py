@@ -260,82 +260,82 @@ def restaurant_page(login_restaurant, email, password):
                     item_label.pack(pady=5)
 
         def display_daily_balance_sheet():
-            # Get the restaurant information based on the logged-in restaurant's email and password
-            mycursor.execute("SELECT restaurantID, restaurantName FROM Restaurants WHERE email = %s AND password = %s",
-                             (email, password))
-            restaurant_info = mycursor.fetchone()
+            try:
+                # Get the restaurant information based on the logged-in restaurant's email and password
+                mycursor.execute(
+                    "SELECT restaurantID, restaurantName FROM Restaurants WHERE email = %s AND password = %s",
+                    (email, password))
+                restaurant_info = mycursor.fetchone()
 
-            if restaurant_info:
-                restaurant_id = restaurant_info[0]
-                restaurant_name = restaurant_info[1]
+                if restaurant_info:
+                    restaurant_id = restaurant_info[0]
+                    restaurant_name = restaurant_info[1]
 
-                # Get the current date
-                current_date = datetime.datetime.now().date()
+                    # Get the current date
+                    current_date = datetime.datetime.now().date()
 
-                # Retrieve order details for the current date and specific restaurant
-                mycursor.execute("SELECT od.itemID, od.quantity FROM OrderDetails od "
-                                 "INNER JOIN Orders o ON od.orderID = o.orderID "
-                                 "INNER JOIN Items i ON od.itemID = i.itemID "
-                                 "INNER JOIN Restaurants r ON i.restaurantID = r.restaurantID "
-                                 "WHERE o.orderDate = %s AND o.customerID IS NULL AND r.restaurantID = %s",
-                                 (current_date, restaurant_id))
-                order_details = mycursor.fetchall()
+                    # Retrieve order details for the current date and specific restaurant
+                    mycursor.execute("SELECT i.itemName, od.quantity, i.price "
+                                     "FROM OrderDetails od "
+                                     "INNER JOIN Orders o ON od.orderID = o.orderID "
+                                     "INNER JOIN Items i ON od.itemID = i.itemID "
+                                     "WHERE o.orderDate = %s AND o.customerID IS NULL AND i.restaurantID = %s",
+                                     (current_date, restaurant_id))
+                    order_details = mycursor.fetchall()
 
-                # Destroy existing widgets in restaurant_window
-                for widget in restaurant_window.winfo_children():
-                    widget.destroy()
+                    # Print order details for debugging
+                    print("Order Details:")
+                    for order_detail in order_details:
+                        print(order_detail)
 
-                # Display the daily balance sheet
-                label = tk.Label(restaurant_window,
-                                 text=f"Daily Balance Sheet for {current_date} - Restaurant: {restaurant_name}")
-                label.pack(pady=20, side=tk.TOP)
+                    # Destroy existing widgets in restaurant_window
+                    for widget in restaurant_window.winfo_children():
+                        widget.destroy()
 
-                # Modify the Back button to go back to the restaurant page
-                back_button = tk.Button(restaurant_window, text="Back",
-                                        command=lambda: go_to_restaurant_page(restaurant_window))
-                back_button.pack(pady=20, padx=20, side=tk.BOTTOM)
+                    # Display the daily balance sheet
+                    label = tk.Label(restaurant_window,
+                                     text=f"Daily Balance Sheet for {current_date} - Restaurant: {restaurant_name}")
+                    label.pack(pady=20, side=tk.TOP)
 
-                # Display order details
-                total_revenue = 0.0
-                total_quantity = 0
-                total_profit = 0.0
+                    # Modify the Back button to go back to the restaurant page
+                    back_button = tk.Button(restaurant_window, text="Back",
+                                            command=lambda: go_to_restaurant_page(restaurant_window))
+                    back_button.pack(pady=20, padx=20, side=tk.BOTTOM)
 
-                for order_detail in order_details:
-                    item_id = order_detail[0]
-                    quantity = order_detail[1]
+                    # Display order details
+                    total_revenue = 0.0
+                    total_quantity = 0
 
-                    # Retrieve item information
-                    mycursor.execute("SELECT itemName, price, cost FROM Items WHERE itemID = %s", (item_id,))
-                    item_info = mycursor.fetchone()
-
-                    if item_info:
-                        item_name = item_info[0]
-                        item_price = item_info[1]
-                        item_cost = item_info[2]
+                    for order_detail in order_details:
+                        item_name = order_detail[0]
+                        quantity = order_detail[1]
+                        item_price = order_detail[2]
                         revenue = quantity * item_price
-                        profit = quantity * (item_price - item_cost)
 
                         total_revenue += revenue
                         total_quantity += quantity
-                        total_profit += profit
 
                         order_label = tk.Label(restaurant_window,
-                                               text=f"{item_name} - Quantity: {quantity} - Revenue: ${revenue:.2f} - "
-                                                    f"Profit: ${profit:.2f}")
+                                               text=f"{item_name} - Quantity: {quantity} - Revenue: ${revenue:.2f}")
                         order_label.pack(pady=5)
 
-                # Display total revenue, total quantity, and total profit
-                total_revenue_label = tk.Label(restaurant_window, text=f"Total Revenue: ${total_revenue:.2f}")
-                total_revenue_label.pack(pady=5)
+                    # Print total revenue and total quantity for debugging
+                    print(f"Total Revenue: {total_revenue}")
+                    print(f"Total Quantity Sold: {total_quantity}")
 
-                total_quantity_label = tk.Label(restaurant_window, text=f"Total Quantity Sold: {total_quantity}")
-                total_quantity_label.pack(pady=5)
+                    # Display total revenue and total quantity
+                    total_revenue_label = tk.Label(restaurant_window, text=f"Total Revenue: ${total_revenue:.2f}")
+                    total_revenue_label.pack(pady=5)
 
-                total_profit_label = tk.Label(restaurant_window, text=f"Total Profit: ${total_profit:.2f}")
-                total_profit_label.pack(pady=10)
+                    total_quantity_label = tk.Label(restaurant_window, text=f"Total Quantity Sold: {total_quantity}")
+                    total_quantity_label.pack(pady=5)
 
-            else:
-                messagebox.showerror("Error", "Failed to retrieve restaurant information.")
+                else:
+                    messagebox.showerror("Error", "Failed to retrieve restaurant information.")
+
+            except Exception as e:
+                print(f"Error in display_daily_balance_sheet: {e}")
+                messagebox.showerror("Error", "Failed to retrieve daily balance sheet.")
 
         def add_item():
             add_item_window = tk.Toplevel(root)
