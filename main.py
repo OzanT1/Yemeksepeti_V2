@@ -84,10 +84,6 @@ def submit_register_restaurant(name, email, password, address, phone_number):
         # Handle any database errors
         messagebox.showerror("Error", f"An error occurred: {str(e)}")
 
-    finally:
-        # Close the database connection
-        mydb.close()
-
 
 def register_restaurant():
     register_screen = tk.Toplevel(root)
@@ -473,10 +469,6 @@ def submit_register_customer(first_name, last_name, email, password, address, ph
     except Exception as e:
         # Handle any database errors
         messagebox.showerror("Error", f"An error occurred: {str(e)}")
-
-    finally:
-        # Close the database connection
-        mydb.close()
 
 
 def register_customer():
@@ -959,10 +951,6 @@ def submit_register_carrier(first_name, last_name, email, password, phone_number
     except Exception as e:
         # Handle any database errors
         messagebox.showerror("Error", f"An error occurred: {str(e)}")
-
-    finally:
-        # Close the database connection
-        mydb.close()
 
 
 def register_carrier():
