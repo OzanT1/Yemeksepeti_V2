@@ -600,6 +600,7 @@ def open_review_text_window(frame, item_name, customer_id):
 # Function that works for selecting the order
 last_selected_item = None  # Variable to store the last selected item
 
+
 def show_selected_ordered_items(frame, ordered_items_listbox, customer_id):
     global last_selected_item
 
@@ -612,7 +613,6 @@ def show_selected_ordered_items(frame, ordered_items_listbox, customer_id):
 
         # Check if the selected item is different from the last one
         if selected_item != last_selected_item:
-
             # Open a new window for writing a review
             open_review_text_window(frame, selected_item, customer_id)
 
@@ -664,6 +664,60 @@ def make_review_button_pressed(customer_id: int) -> None:
     else:
         # Handle the case where there are no ordered items for the customer
         tk.Label(make_review_frame, text="No ordered items found for this customer.").pack()
+
+
+# Display Customer Reviews
+def display_reviews_item(frame, datas):
+    item_frame = tk.Frame(frame)
+    item_frame.pack(padx=10, pady=10, expand=True, fill=tk.BOTH)
+
+    for item in datas:
+        item_id, customer_first_name, customer_last_name, review_text, date, rating = item
+
+        # Displaying Item ID
+        item_id_label = tk.Label(item_frame, text=f"Item ID: {item_id}")
+        item_id_label.pack()
+
+        # Displaying Customer Name
+        customer_name_label = tk.Label(item_frame, text=f"Customer Name: {customer_first_name} {customer_last_name}")
+        customer_name_label.pack()
+
+        # Displaying Review Text
+        review_text_label = tk.Label(item_frame, text=f"Review: {review_text}")
+        review_text_label.pack()
+
+        # Displaying Date
+        date_label = tk.Label(item_frame, text=f"Date: {date}")
+        date_label.pack()
+
+        # Displaying Rating
+        rating_label = tk.Label(item_frame, text=f"Rating: {rating}")
+        rating_label.pack()
+
+        # Separator between items
+        separator = tk.Frame(item_frame, height=2, bd=1, relief=tk.SUNKEN)
+        separator.pack(fill=tk.X, padx=5, pady=5)
+
+
+def display_reviews_customer(item_id: int) -> None:
+    display_reviews_window = tk.Toplevel(root)
+    display_reviews_window.title("Reviews")
+    display_reviews_window.geometry("700x700")
+
+    display_reviews_frame = tk.Frame(display_reviews_window)
+    display_reviews_frame.pack(padx=10, pady=10, expand=True, fill=tk.BOTH)
+
+    sql_cmd = "SELECT items.itemID, customers.firstName, customers.lastName, reviews.reviewText, reviews.date, reviews.rating FROM items INNER JOIN reviews ON items.itemID = reviews.itemID INNER JOIN Customers ON reviews.customerID = Customers.customerID WHERE itemID= %s"
+    mycursor.execute(sql_cmd, (item_id,))
+    reviews_data = mycursor.fetchall()
+
+    # If the review's datas exist
+    if reviews_data:
+
+        # Display reviews for that item
+        display_reviews_item(display_reviews_frame, reviews_data)
+    else:
+        tk.Label(display_reviews_frame, text="No reviews found for this item.").pack()
 
 
 def customer_page(login_customer, email, password):
