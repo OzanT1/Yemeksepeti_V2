@@ -702,8 +702,10 @@ def customer_page(login_customer, email, password):
         mycursor.execute(sql_cmd, (selected_payment_option, customer_id))
         mydb.commit()
 
+        messagebox.showinfo(title="Payment Info", message="Order completed")
+
         # Filling OrderDetails
-        
+
 
 
         print(f"Selected Payment Option: {selected_payment_option}")
@@ -723,8 +725,11 @@ def customer_page(login_customer, email, password):
         home_button = tk.Button(customer_frame, text="Home", command=lambda: go_to_home(customer_frame))
         home_button.pack(pady=20, padx=20, side=tk.TOP)
 
-        restaurants_list_frame = tk.Frame(customer_frame, padx=10, pady=10, bg="black")
+        restaurants_list_frame = tk.Frame(customer_frame, padx=10, pady=10)
         restaurants_list_frame.pack(padx=10, pady=10, side=tk.LEFT, fill=tk.BOTH, expand=True)
+
+        restaurants_label = tk.Label(restaurants_list_frame, text="Restaurants", fg="red")
+        restaurants_label.pack()
 
         # Scrollbar for the list of restaurants
         scrollbar = tk.Scrollbar(restaurants_list_frame, orient=tk.VERTICAL)
@@ -751,8 +756,11 @@ def customer_page(login_customer, email, password):
         # Bind the show_selected_restaurant_items function to the selection event
         restaurants_listbox.bind("<<ListboxSelect>>", show_selected_restaurant_items)
 
-        items_list_frame = tk.Frame(customer_frame, padx=10, pady=10, bg="blue")
+        items_list_frame = tk.Frame(customer_frame, padx=10, pady=10)
         items_list_frame.pack(padx=10, pady=10, side=tk.LEFT, fill=tk.BOTH, expand=1)
+
+        items_label = tk.Label(items_list_frame, text="Products", fg="red")
+        items_label.pack()
 
         # Get customerID
         sql_cmd = f"select customerID from Customers where email = '{str(email)}' and password = '{str(password)}'"
@@ -765,6 +773,9 @@ def customer_page(login_customer, email, password):
 
         basket_list_frame = tk.Frame(customer_frame, padx=10, pady=10)
         basket_list_frame.pack(padx=10, pady=10, side=tk.LEFT, fill=tk.BOTH, expand=1)
+
+        display_reviews_button = tk.Button(basket_list_frame, text="Display Reviews")  # command will be entered.
+        display_reviews_button.pack()
 
         # Listbox to display the items
         items_listbox = tk.Listbox(items_list_frame)
