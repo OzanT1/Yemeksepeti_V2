@@ -188,6 +188,46 @@ def restaurant_page(login_restaurant, email, password):
             back_button = tk.Button(window, text="Back", command=lambda: go_to_restaurant_page(window))
             back_button.pack(pady=20, padx=20, side=tk.BOTTOM)
 
+        def display_reviews_restaurant():
+            # Retrieve the restaurant information from the database based on the logged-in restaurant's email and password
+            mycursor.execute("SELECT * FROM Restaurants WHERE email = %s AND password = %s", (email, password))
+            restaurant = mycursor.fetchone()
+
+            if restaurant:
+                restaurant_id = restaurant[0]
+                restaurant_name = restaurant[1]
+
+                # Retrieve reviews for the restaurant's items
+                mycursor.execute("SELECT r.reviewText, r.rating, i.itemName FROM Reviews r "
+                                 "INNER JOIN Items i ON r.itemID = i.itemID "
+                                 "WHERE i.restaurantID = %s", (restaurant_id,))
+                reviews = mycursor.fetchall()
+
+                # Destroy the existing widgets in restaurant_window
+                for widget in restaurant_window.winfo_children():
+                    widget.destroy()
+
+                # Display the restaurant information
+                label = tk.Label(restaurant_window, text=f"Comments and Ratings for {restaurant_name}:")
+                label.pack(pady=20, side=tk.TOP)
+
+                back_button = tk.Button(restaurant_window, text="Back",
+                                        command=lambda: go_to_restaurant_page(restaurant_window))
+                back_button.pack(pady=20, padx=20, side=tk.BOTTOM)
+
+                # Display comments and ratings
+                for review in reviews:
+                    review_text = review[0]
+                    rating = review[1]
+                    item_name = review[2]
+
+                    review_label = tk.Label(restaurant_window,
+                                            text=f"Item: {item_name} - Rating: {rating} - Comment: {review_text}")
+                    review_label.pack(pady=5)
+
+            else:
+                messagebox.showerror("Error", "Failed to retrieve restaurant information.")
+
         def display_restaurant_menu():
             # Retrieve the restaurant information and menu from the database based on the logged-in restaurant's email and password
             mycursor.execute("SELECT * FROM Restaurants WHERE email = %s AND password = %s", (email, password))
@@ -200,6 +240,7 @@ def restaurant_page(login_restaurant, email, password):
                 # Retrieve the menu items for the restaurant
                 mycursor.execute("SELECT * FROM Items WHERE restaurantID = %s", (restaurant_id,))
                 menu_items = mycursor.fetchall()
+
 
                 # Destroy the existing widgets in restaurant_window
                 for widget in restaurant_window.winfo_children():
@@ -386,15 +427,23 @@ def restaurant_page(login_restaurant, email, password):
 
         display_balance_sheet_button = tk.Button(restaurant_window, text="Display Balance Sheet",
                                                  command=display_daily_balance_sheet, width=20, height=5)
+        display_reviews_button = tk.Button(restaurant_window, text="Display Reviews", command=display_reviews_restaurant, width=20, height=5)
+
+
         display_menu_button = tk.Button(restaurant_window, text="Display Menu", command=display_restaurant_menu,
                                         width=20, height=5)
         add_item_button = tk.Button(restaurant_window, text="Add Item", command=add_item, width=20, height=5)
         delete_item_button = tk.Button(restaurant_window, text="Delete Item", command=delete_item, width=20, height=5)
 
-        display_balance_sheet_button.pack(pady=10)
-        display_menu_button.pack(pady=10)
-        add_item_button.pack(pady=10)
-        delete_item_button.pack(pady=10)
+
+        display_balance_sheet_button.pack(pady=3)
+        display_reviews_button.pack(pady=3)
+        display_menu_button.pack(pady=3)
+        add_item_button.pack(pady=3)
+        delete_item_button.pack(pady=3)
+
+
+
 
         home_button = tk.Button(restaurant_window, text="Home", command=lambda: go_to_home(restaurant_window))
         home_button.pack(pady=20, padx=20, side=tk.TOP)
