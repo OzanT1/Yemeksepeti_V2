@@ -1,4 +1,4 @@
-The project is an online food ordering system (like 'Yemeksepeti'). It is not connected to the internet, it is a desktop app that uses a local database. There are three user logins. These are for restaurants, for customers and for carriers.
+A food ordering system (like 'Yemeksepeti'). It is a desktop app that uses a local database. The aim of the project is to use Python and SQL to develop an app that uses a relational database. There are three user logins. These are for restaurants, for customers and for carriers.
 
 ![image](https://github.com/alimertgok/Yemeksepeti_V2/assets/103127960/a31f8aac-3497-4847-8519-e6b550535e86)
 
